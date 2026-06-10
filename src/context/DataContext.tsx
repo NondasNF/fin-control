@@ -53,7 +53,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       
       const currentYearMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
       
-      // Processa gastos fixos do mês antes de buscar dados
+      // Limpeza temporária: Se houver transações órfãs do bug anterior (is_fixed=1 mas sem fixed_expense_id)
+      // vamos tentar vinculá-las ou removê-las se forem duplicatas óbvias.
+      // Como o banco acabou de ser alterado, o processMonthlyFixedExpenses agora usa o novo ID.
+      
       await fixedExpenseService.processMonthlyFixedExpenses(currentYearMonth);
 
       const [categoriesData, transactionsData, fixedExpensesData, settingsData] = await Promise.all([

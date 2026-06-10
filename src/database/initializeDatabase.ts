@@ -9,6 +9,19 @@ export async function initializeDatabase(database: SQLiteDatabase) {
     // Ativa suporte a chaves estrangeiras
     await database.execAsync('PRAGMA foreign_keys = ON;');
 
+    // Migração manual: Adiciona fixed_expense_id se não existir
+    try {
+      const tableInfo = await database.getAllAsync<{ name: string }>('PRAGMA table_info(transactions)');
+      const hasColumn = tableInfo.some(col => col.name === 'fixed_expense_id');
+      
+      if (!hasColumn) {
+        await database.execAsync('ALTER TABLE transactions ADD COLUMN fixed_expense_id INTEGER REFERENCES fixed_expenses(id) ON DELETE SET NULL;');
+        console.log('[Database] Coluna fixed_expense_id adicionada com sucesso.');
+      }
+    } catch (e) {
+      console.error('[Database] Erro ao verificar/migrar coluna:', e);
+    }
+
     await database.execAsync(`
       -- Tabela de Configurações (Singleton: apenas 1 registro)
       CREATE TABLE IF NOT EXISTS settings (
