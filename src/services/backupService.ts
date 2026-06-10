@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { SQLiteDatabase } from 'expo-sqlite';
 import { Category, Transaction, FixedExpense, Settings } from '../types/database';
@@ -21,11 +21,13 @@ export const backupDatabase = async (db: SQLiteDatabase) => {
     const fileName = `fin-control-backup-${new Date().getTime()}.json`;
     const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
+    // Usando a API estável via import de legacy
     await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(backupData));
 
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(fileUri);
-    } else {
+    }
+ else {
       console.log('Sharing is not available');
     }
   } catch (error) {
@@ -36,15 +38,16 @@ export const backupDatabase = async (db: SQLiteDatabase) => {
 
 export const restoreDatabase = async (db: SQLiteDatabase, jsonString: string) => {
   try {
+    console.log('[BackupService] Iniciando restauração...');
     const data = JSON.parse(jsonString);
 
     await db.withTransactionAsync(async () => {
-      // Clear existing data (optional, depends on requirement - usually yes for restore)
+      console.log('[BackupService] Limpando dados antigos...');
       await db.runAsync('DELETE FROM transactions');
       await db.runAsync('DELETE FROM fixed_expenses');
       await db.runAsync('DELETE FROM categories');
       
-      // Restore categories
+      console.log(`[BackupService] Restaurando ${data.categories.length} categorias...`);
       for (const cat of data.categories) {
         await db.runAsync(
           'INSERT INTO categories (id, name, icon, color, type, rule_group) VALUES (?, ?, ?, ?, ?, ?)',
@@ -52,7 +55,7 @@ export const restoreDatabase = async (db: SQLiteDatabase, jsonString: string) =>
         );
       }
 
-      // Restore fixed expenses
+      console.log(`[BackupService] Restaurando ${data.fixedExpenses.length} gastos fixos...`);
       for (const fe of data.fixedExpenses) {
         await db.runAsync(
           'INSERT INTO fixed_expenses (id, description, amount, day_due, category_id, active) VALUES (?, ?, ?, ?, ?, ?)',
@@ -60,18 +63,28 @@ export const restoreDatabase = async (db: SQLiteDatabase, jsonString: string) =>
         );
       }
 
-      // Restore transactions
+      if (data.settings) {
+        console.log('[BackupService] Restaurando configurações...');
+        const s = Array.isArray(data.settings) ? data.settings[0] : data.settings;
+        await db.runAsync(
+          'UPDATE settings SET monthly_salary = ?, currency = ?, theme = ? WHERE id = 1',
+          [s.monthly_salary || 0, s.currency || 'BRL', s.theme || 'light']
+        );
+      }
+
+      console.log(`[BackupService] Restaurando ${data.transactions.length} transações...`);
       for (const t of data.transactions) {
         await db.runAsync(
-          'INSERT INTO transactions (id, description, amount, date, type, category_id, is_fixed) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [t.id, t.description, t.amount, t.date, t.type, t.category_id, t.is_fixed || 0]
+          'INSERT INTO transactions (description, amount, date, type, category_id, is_fixed, fixed_expense_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [t.description, t.amount, t.date, t.type, t.category_id, t.is_fixed || 0, t.fixed_expense_id || null]
         );
       }
     });
 
-    console.log('Database restored successfully');
-  } catch (error) {
-    console.error('Error during restore:', error);
-    throw error;
+    console.log('[BackupService] Restauração concluída com sucesso!');
+  } catch (error: any) {
+    console.error('[BackupService] Erro detalhado na restauração:', error);
+    // Re-lança o erro com mensagem mais clara para o Alert da UI
+    throw new Error(`Falha no JSON: ${error.message}`);
   }
 };

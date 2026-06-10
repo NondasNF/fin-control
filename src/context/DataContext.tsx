@@ -1,3 +1,4 @@
+import { Alert, View } from 'react-native';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { Category, Transaction, FixedExpense, Settings } from '../types/database';
@@ -93,10 +94,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const deleteTransaction = async (id: number) => {
     try {
+      console.log(`[DataContext] Deletando transação ID: ${id}`);
       await transactionRepo.delete(id);
       await refreshData();
-    } catch (error) {
+      console.log('[DataContext] Refresh após deleção concluído');
+    } catch (error: any) {
       console.error('Error deleting transaction:', error);
+      Alert.alert('Erro ao excluir', error.message || 'Erro desconhecido');
     }
   };
 
@@ -104,8 +108,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     try {
       await settingsRepo.update({ monthly_salary: amount });
       await refreshData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating salary:', error);
+      Alert.alert('Erro ao salvar salário', error.message || 'Erro desconhecido');
     }
   };
 
@@ -113,8 +118,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     try {
       await fixedExpenseRepo.create(expense);
       await refreshData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding fixed expense:', error);
+      Alert.alert('Erro ao salvar gasto fixo', error.message || 'Erro desconhecido');
     }
   };
 
@@ -122,17 +128,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     try {
       await fixedExpenseRepo.update(id, expense);
       await refreshData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating fixed expense:', error);
+      Alert.alert('Erro ao atualizar gasto fixo', error.message || 'Erro desconhecido');
     }
   };
 
   const deleteFixedExpense = async (id: number) => {
     try {
+      console.log(`[DataContext] Deletando gasto fixo ID: ${id}`);
       await fixedExpenseRepo.delete(id);
       await refreshData();
-    } catch (error) {
+      console.log('[DataContext] Refresh após deleção de gasto fixo concluído');
+    } catch (error: any) {
       console.error('Error deleting fixed expense:', error);
+      Alert.alert('Erro ao excluir gasto fixo', error.message || 'Erro desconhecido');
     }
   };
 

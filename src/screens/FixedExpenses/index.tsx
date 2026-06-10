@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Modal, Switch } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Modal, Switch, Alert } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { Plus, X, Calendar, Tag, DollarSign, Trash2 } from 'lucide-react-native';
@@ -79,11 +79,24 @@ export function FixedExpenses() {
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      await deleteFixedExpense(id);
-    } catch (error) {
-      console.error('Error deleting fixed expense:', error);
-    }
+    Alert.alert(
+      'Excluir Gasto Fixo',
+      'Deseja apagar este modelo de gasto? As transações já geradas este mês serão mantidas, a menos que você as apague manualmente.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Excluir', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await deleteFixedExpense(id);
+            } catch (error) {
+              console.error('Error deleting fixed expense:', error);
+            }
+          } 
+        },
+      ]
+    );
   };
 
   return (

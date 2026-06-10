@@ -4,7 +4,7 @@ import { useData } from '../../context/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { backupDatabase, restoreDatabase } from '../../services/backupService';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Settings as SettingsIcon, Download, Upload, DollarSign, Info, Trash2 } from 'lucide-react-native';
 
 export function Settings() {
@@ -36,13 +36,18 @@ export function Settings() {
       const result = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
       
       if (!result.canceled) {
+        console.log('[Settings] Arquivo selecionado:', result.assets[0].name);
+        
+        // Usando a API estável via import de legacy
         const fileContent = await FileSystem.readAsStringAsync(result.assets[0].uri);
+        
         await restoreDatabase(db, fileContent);
         await refreshData();
         Alert.alert('Sucesso', 'Dados restaurados com sucesso!');
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao restaurar o backup. Verifique o arquivo.');
+    } catch (error: any) {
+      console.error('[Settings] Erro ao restaurar:', error);
+      Alert.alert('Falha na Restauração', error.message || 'Verifique o formato do arquivo JSON.');
     }
   };
 

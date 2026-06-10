@@ -19,10 +19,17 @@ export function BudgetCard({ title, limit, actual, percentage, remaining, color 
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
-        <Text style={[styles.remaining, isOverBudget && styles.overBudget]}>
-          {isOverBudget ? 'Excedido: ' : 'Restante: '}
-          {formatCurrency(Math.abs(remaining))}
-        </Text>
+        {!(title === "Guardar") ?
+          <Text style={[styles.remaining, isOverBudget && styles.overBudget]}>
+            {isOverBudget ? 'Excedido: ' : 'Restante: '}
+            {formatCurrency(Math.abs(remaining))}
+          </Text>
+          :
+          <Text style={[styles.remaining, isOverBudget && styles.overBudget]}>
+            {isOverBudget ? 'Excedido: ' : 'Faltante: '}
+            {formatCurrency(Math.abs(remaining))}
+          </Text>
+        }
       </View>
 
       <ProgressBar progress={percentage} color={color} />

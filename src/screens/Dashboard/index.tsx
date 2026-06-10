@@ -1,12 +1,30 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { BudgetCard } from '../../components/dashboard/BudgetCard';
 import { formatCurrency, getCurrentMonthName } from '../../utils/formatters';
-import { Wallet, TrendingUp, Landmark } from 'lucide-react-native';
+import { Wallet, TrendingUp, Landmark, Calculator, Calendar } from 'lucide-react-native';
 
 export function Dashboard() {
   const { budgetSummary, loading, refreshData, settings } = useData();
+
+  const dailyLimitData = useMemo(() => {
+    if (!budgetSummary) return null;
+    
+    const today = new Date();
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const daysRemaining = lastDayOfMonth - today.getDate() + 1;
+    
+    const consumptionSpending = budgetSummary.needs.actual + budgetSummary.wants.actual + budgetSummary.savings.actual;
+    const remainingForConsumption = budgetSummary.monthlySalary - consumptionSpending;
+    
+    const dailyLimit = remainingForConsumption > 0 ? remainingForConsumption / daysRemaining : 0;
+    
+    return {
+      dailyLimit,
+      daysRemaining
+    };
+  }, [budgetSummary]);
 
   if (!budgetSummary) {
     return (
@@ -45,26 +63,27 @@ export function Dashboard() {
 
         <View style={styles.summaryItem}>
           <View style={[styles.iconContainer, { backgroundColor: '#E8F9EE' }]}>
-            <TrendingUp size={20} color="#34C759" />
+            <Calculator size={20} color="#34C759" />
           </View>
-          <Text style={styles.summaryLabel}>Economia</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(budgetSummary.savings.actual)}</Text>
+          <Text style={styles.summaryLabel}>Limite p/ Dia</Text>
+          <Text style={styles.summaryValue}>{formatCurrency(dailyLimitData?.dailyLimit || 0)}</Text>
+          <Text style={styles.daysRemaining}>Restam {dailyLimitData?.daysRemaining} dias</Text>
         </View>
       </View>
 
       <Text style={styles.sectionTitle}>Regra 50/30/20</Text>
 
       <BudgetCard 
-        title="Necessidades (50%)"
+        title="Gastos Fixos"
         limit={budgetSummary.needs.limit}
         actual={budgetSummary.needs.actual}
         percentage={budgetSummary.needs.percentage}
         remaining={budgetSummary.needs.remaining}
-        color="#007AFF"
+        color={budgetSummary.needs.percentage > 95 ? "#ff2e2e": "#007AFF"}
       />
 
       <BudgetCard 
-        title="Lazer / Desejos (30%)"
+        title="Gastos Mensais"
         limit={budgetSummary.wants.limit}
         actual={budgetSummary.wants.actual}
         percentage={budgetSummary.wants.percentage}
@@ -73,7 +92,7 @@ export function Dashboard() {
       />
 
       <BudgetCard 
-        title="Investimentos (20%)"
+        title="Guardar"
         limit={budgetSummary.savings.limit}
         actual={budgetSummary.savings.actual}
         percentage={budgetSummary.savings.percentage}
@@ -175,6 +194,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1C1C1E',
+  },
+  daysRemaining: {
+    fontSize: 10,
+    color: '#8E8E93',
+    marginTop: 2,
   },
   sectionTitle: {
     fontSize: 18,

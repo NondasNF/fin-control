@@ -32,7 +32,14 @@ export class TransactionRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await this.database.runAsync('DELETE FROM transactions WHERE id = ?', [id]);
+    try {
+      console.log(`[TransactionRepository] Executando SQL: DELETE FROM transactions WHERE id = ${id}`);
+      await this.database.runAsync('DELETE FROM transactions WHERE id = ?', [id]);
+      console.log(`[TransactionRepository] Deleção de transação ${id} concluída com sucesso.`);
+    } catch (error) {
+      console.error('[TransactionRepository] Erro fatal no SQL de exclusão:', error);
+      throw error;
+    }
   }
 
   async findById(id: number): Promise<Transaction | null> {

@@ -30,7 +30,14 @@ export class FixedExpenseRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await this.database.runAsync('DELETE FROM fixed_expenses WHERE id = ?', [id]);
+    try {
+      console.log(`[FixedExpenseRepository] Executando SQL: DELETE FROM fixed_expenses WHERE id = ${id}`);
+      await this.database.runAsync('DELETE FROM fixed_expenses WHERE id = ?', [id]);
+      console.log(`[FixedExpenseRepository] Deleção de gasto fixo ${id} concluída com sucesso.`);
+    } catch (error) {
+      console.error('[FixedExpenseRepository] Erro fatal no SQL de exclusão:', error);
+      throw error;
+    }
   }
 
   async findById(id: number): Promise<FixedExpense | null> {

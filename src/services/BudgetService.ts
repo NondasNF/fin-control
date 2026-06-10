@@ -56,24 +56,26 @@ export class BudgetService {
       }
     });
 
+    actuals.savings = (monthlySalary - (actuals.needs + actuals.wants)) > savingsLimit ? savingsLimit : (monthlySalary - (actuals.needs + actuals.wants));
+
     return {
       monthlySalary,
       needs: {
         limit: needsLimit,
         actual: actuals.needs,
-        percentage: monthlySalary > 0 ? (actuals.needs / monthlySalary) * 100 : 0,
+        percentage: needsLimit > 0 ? (actuals.needs / needsLimit) * 100 : 0,
         remaining: needsLimit - actuals.needs,
       },
       wants: {
         limit: wantsLimit,
         actual: actuals.wants,
-        percentage: monthlySalary > 0 ? (actuals.wants / monthlySalary) * 100 : 0,
+        percentage: wantsLimit > 0 ? (actuals.wants / wantsLimit) * 100 : 0,
         remaining: wantsLimit - actuals.wants,
       },
       savings: {
         limit: savingsLimit,
         actual: actuals.savings,
-        percentage: monthlySalary > 0 ? (actuals.savings / monthlySalary) * 100 : 0,
+        percentage: savingsLimit > 0 ? (actuals.savings / savingsLimit) * 100 : 0,
         remaining: savingsLimit - actuals.savings,
       },
       totalExpense: actuals.needs + actuals.wants + actuals.savings,

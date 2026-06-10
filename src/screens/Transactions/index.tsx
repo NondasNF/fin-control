@@ -82,8 +82,12 @@ export function Transactions() {
           <Text style={[styles.amount, { color: isExpense ? '#FF3B30' : '#34C759' }]}>
             {isExpense ? '-' : '+'} {formatCurrency(item.amount)}
           </Text>
-          <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteBtn}>
-            <Trash2 size={16} color="#8E8E93" />
+          <TouchableOpacity 
+            onPress={() => handleDelete(item.id)} 
+            style={styles.deleteBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Trash2 size={18} color="#FF3B30" />
           </TouchableOpacity>
         </View>
       </View>
