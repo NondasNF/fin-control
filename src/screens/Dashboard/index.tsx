@@ -88,7 +88,7 @@ export function Dashboard() {
         actual={budgetSummary.wants.actual}
         percentage={budgetSummary.wants.percentage}
         remaining={budgetSummary.wants.remaining}
-        color="#FF9500"
+        color={budgetSummary.wants.percentage > 95 ? "#ff2e2e": "#FF9500"}
       />
 
       <BudgetCard 
