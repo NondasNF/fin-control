@@ -26,13 +26,20 @@
         "visible": "always",
         "barStyle": "dark-content",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.nondasnf.fincontrol"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-sqlite"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fc9ea2e1-ff25-4c3d-a560-c4c4d77d8712"
+      }
+    },
+    "owner": "nondasnf"
   }
 }
