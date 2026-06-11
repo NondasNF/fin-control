@@ -6,9 +6,9 @@ O **FinControl** é uma aplicação móvel de gestão financeira pessoal focada 
 
 Muitas pessoas têm dificuldade em saber quanto podem gastar por dia ou como dividir sua renda. O FinControl resolve isso ao organizar suas finanças em três categorias principais:
 
-1.  **50% - Necessidades (Gastos Fixos):** Aluguel, contas de luz, internet, etc.
-2.  **30% - Desejos (Gastos Variáveis):** Lazer, restaurantes, compras casuais.
-3.  **20% - Guardar/Investir:** Reserva de emergência ou investimentos futuros.
+1.  **50% - Gastos Fixos Mensais:** Aluguel, contas de luz, internet, etc.
+2.  **30% - Gastos Variáveis Mensais:** Lazer, restaurantes, compras casuais.
+3.  **20% - Guardar:** Reserva de emergência ou investimentos futuros.
 
 O diferencial do app é o cálculo em tempo real do **Limite por Dia**, que diz exatamente quanto você ainda pode gastar no dia de hoje para chegar ao fim do mês dentro do seu orçamento.
 x
