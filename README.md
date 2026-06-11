@@ -1,8 +1,8 @@
-# FinControl 💰
+# FinControl
 
 O **FinControl** é uma aplicação móvel de gestão financeira pessoal focada em simplicidade e eficiência. O projeto foi construído para ajudar usuários a aplicarem a famosa **Regra 50/30/20** de forma automatizada e visual.
 
-## 💡 A Ideia
+## A Ideia
 
 Muitas pessoas têm dificuldade em saber quanto podem gastar por dia ou como dividir sua renda. O FinControl resolve isso ao organizar suas finanças em três categorias principais:
 
@@ -12,7 +12,7 @@ Muitas pessoas têm dificuldade em saber quanto podem gastar por dia ou como div
 
 O diferencial do app é o cálculo em tempo real do **Limite por Dia**, que diz exatamente quanto você ainda pode gastar no dia de hoje para chegar ao fim do mês dentro do seu orçamento.
 x
-## 🚀 Principais Funcionalidades
+## Principais Funcionalidades
 
 -   **Dashboard Inteligente:** Resumo visual do mês, progresso da regra 50/30/20 e limite de gasto diário.
 -   **Gestão de Gastos Fixos:** Cadastro de despesas que se repetem todos os meses para automação do orçamento.
@@ -21,7 +21,7 @@ x
 -   **Banco de Dados Local:** Total privacidade. Seus dados financeiros não saem do seu celular (utiliza SQLite).
 -   **Backup e Restauração:** Segurança para seus dados através de exportação/importação de arquivos JSON.
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 Este projeto foi desenvolvido utilizando as tecnologias mais modernas do ecossistema React Native:
 
@@ -32,7 +32,7 @@ Este projeto foi desenvolvido utilizando as tecnologias mais modernas do ecossis
 -   **[React Navigation](https://reactnavigation.org/):** Gestão de rotas e navegação em abas.
 -   **Context API:** Gerenciamento de estado global da aplicação.
 
-## 🏗️ Estrutura do Projeto
+## Estrutura do Projeto
 
 ```text
 src/
