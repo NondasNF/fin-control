@@ -46,7 +46,7 @@ src/
 └── utils/         # Formatadores e funções auxiliares
 ```
 
-## 🏁 Como Começar
+## Como Começar
 
 ### Pré-requisitos
 - Node.js instalado
@@ -69,6 +69,6 @@ src/
    npx expo start
    ```
 
-## 📄 Licença
+## Licença
 
 Este projeto está sob a licença [MIT](LICENSE).
