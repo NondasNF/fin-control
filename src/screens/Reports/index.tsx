@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { ReportService, CategorySpending } from '../../services/ReportService';
 import { TransactionRepository } from '../../database/repositories/TransactionRepository';
-import { formatCurrency, getCurrentMonthName } from '../../utils/formatters';
-import { PieChart, ArrowDownCircle, ArrowUpCircle, Wallet } from 'lucide-react-native';
+import { formatCurrency, formatMonthYear } from '../../utils/formatters';
+import { PieChart, ArrowDownCircle, ArrowUpCircle, Wallet, ChevronLeft, ChevronRight, Calendar } from 'lucide-react-native';
 
 export function Reports() {
-  const { transactions, categories, loading, refreshData, db } = useData();
+  const { transactions, categories, loading, refreshData, db, selectedMonth, setSelectedMonth } = useData();
   const [spendingByCategory, setSpendingByCategory] = useState<CategorySpending[]>([]);
   const [monthlyBalance, setMonthlyBalance] = useState({ income: 0, expense: 0, balance: 0 });
 
@@ -15,18 +15,28 @@ export function Reports() {
     return new ReportService(new TransactionRepository(db));
   }, [db]);
 
-  const currentYearMonth = useMemo(() => new Date().toISOString().substring(0, 7), []);
+  const handlePrevMonth = () => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const date = new Date(year, month - 2, 1);
+    setSelectedMonth(date.toISOString().substring(0, 7));
+  };
+
+  const handleNextMonth = () => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const date = new Date(year, month, 1);
+    setSelectedMonth(date.toISOString().substring(0, 7));
+  };
 
   useEffect(() => {
     const loadReports = async () => {
-      const spending = await reportService.getSpendingByCategory(currentYearMonth, categories);
-      const balance = await reportService.getMonthlyBalance(currentYearMonth);
+      const spending = await reportService.getSpendingByCategory(selectedMonth, categories);
+      const balance = await reportService.getMonthlyBalance(selectedMonth);
       setSpendingByCategory(spending);
       setMonthlyBalance(balance);
     };
 
     loadReports();
-  }, [transactions, categories, reportService, currentYearMonth]);
+  }, [transactions, categories, reportService, selectedMonth]);
 
   return (
     <ScrollView 
@@ -35,7 +45,20 @@ export function Reports() {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Relatórios</Text>
-        <Text style={styles.subtitle}>Análise de {getCurrentMonthName()}</Text>
+        <Text style={styles.subtitle}>Análise de {formatMonthYear(selectedMonth)}</Text>
+      </View>
+
+      <View style={styles.monthSelector}>
+        <TouchableOpacity onPress={handlePrevMonth} style={styles.monthArrow}>
+          <ChevronLeft size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <View style={styles.monthDisplay}>
+          <Calendar size={20} color="#007AFF" style={{ marginRight: 8 }} />
+          <Text style={styles.monthText}>{formatMonthYear(selectedMonth)}</Text>
+        </View>
+        <TouchableOpacity onPress={handleNextMonth} style={styles.monthArrow}>
+          <ChevronRight size={24} color="#007AFF" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.balanceCard}>
@@ -94,6 +117,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7', padding: 16 },
   header: { marginTop: 8, marginBottom: 16 },
   title: { fontSize: 28, fontWeight: 'bold', color: '#1C1C1E' },
+  subtitle: { fontSize: 16, color: '#8E8E93', marginTop: 4 },
   monthSelector: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -101,7 +125,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 12,
-    marginBottom: 16,
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -132,14 +156,6 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1C1C1E', marginBottom: 16 },
   categoryList: { gap: 12 },
   categoryCard: { backgroundColor: '#fff', borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  categoryInfo: { flexDirection: 'row', alignItems: 'center' },
-  colorDot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
-  categoryName: { fontSize: 16, fontWeight: '500', color: '#1C1C1E' },
-  categoryAmount: { fontSize: 16, fontWeight: 'bold', color: '#1C1C1E' },
-  emptyState: { alignItems: 'center', padding: 40 },
-  emptyText: { color: '#8E8E93', fontSize: 14 },
-});
-tifyContent: 'space-between', alignItems: 'center' },
   categoryInfo: { flexDirection: 'row', alignItems: 'center' },
   colorDot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
   categoryName: { fontSize: 16, fontWeight: '500', color: '#1C1C1E' },
