@@ -2,11 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, ScrollView, Alert } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { formatCurrency } from '../../utils/formatters';
-import { Plus, X, Tag, DollarSign, Calendar, ArrowUpCircle, ArrowDownCircle, Trash2, Filter } from 'lucide-react-native';
+import { Plus, X, Tag, DollarSign, Calendar, ArrowUpCircle, ArrowDownCircle, Trash2, Filter, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { Transaction } from '../../types/database';
 
 export function Transactions() {
-  const { transactions, categories, loading, refreshData, addTransaction, deleteTransaction } = useData();
+  const { transactions, categories, loading, refreshData, addTransaction, deleteTransaction, selectedMonth, setSelectedMonth } = useData();
   const [modalVisible, setModalVisible] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
 
@@ -21,6 +21,24 @@ export function Transactions() {
     if (filterType === 'all') return transactions;
     return transactions.filter(t => t.type === filterType);
   }, [transactions, filterType]);
+
+  const handlePrevMonth = () => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const date = new Date(year, month - 2, 1);
+    setSelectedMonth(date.toISOString().substring(0, 7));
+  };
+
+  const handleNextMonth = () => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const date = new Date(year, month, 1);
+    setSelectedMonth(date.toISOString().substring(0, 7));
+  };
+
+  const formatMonth = (monthStr: string) => {
+    const [year, month] = monthStr.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  };
 
   const handleOpenModal = () => {
     setDescription('');
@@ -109,6 +127,19 @@ export function Transactions() {
         <Text style={styles.title}>Transações</Text>
         <TouchableOpacity style={styles.addButton} onPress={handleOpenModal}>
           <Plus size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.monthSelector}>
+        <TouchableOpacity onPress={handlePrevMonth} style={styles.monthArrow}>
+          <ChevronLeft size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <View style={styles.monthDisplay}>
+          <Calendar size={20} color="#007AFF" style={{ marginRight: 8 }} />
+          <Text style={styles.monthText}>{formatMonth(selectedMonth)}</Text>
+        </View>
+        <TouchableOpacity onPress={handleNextMonth} style={styles.monthArrow}>
+          <ChevronRight size={24} color="#007AFF" />
         </TouchableOpacity>
       </View>
 
@@ -315,6 +346,4 @@ const styles = StyleSheet.create({
   categoryOptionText: { fontSize: 13, fontWeight: '500', color: '#3A3A3C' },
   saveBtn: { backgroundColor: '#007AFF', borderRadius: 12, height: 54, justifyContent: 'center', alignItems: 'center', marginTop: 12, marginBottom: 24 },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-});
-xt: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
