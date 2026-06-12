@@ -9,6 +9,18 @@ export const formatCurrency = (value: number): string => {
 };
 
 /**
+ * Retorna o nome do mês e ano em português para uma string YYYY-MM.
+ */
+export const formatMonthYear = (yearMonth: string): string => {
+  const [year, month] = yearMonth.split('-');
+  const months = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  return `${months[parseInt(month) - 1]} ${year}`;
+};
+
+/**
  * Retorna o nome do mês atual em português.
  */
 export const getCurrentMonthName = (): string => {

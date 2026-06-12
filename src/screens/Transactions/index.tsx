@@ -27,7 +27,16 @@ export function Transactions() {
     setAmount('');
     setType('expense');
     setCategoryId(categories.length > 0 ? categories[0].id : null);
-    setDate(new Date().toISOString().split('T')[0]);
+    
+    // Define a data padrão como o primeiro dia do mês selecionado
+    // Se for o mês atual, usa a data de hoje
+    const today = new Date().toISOString().substring(0, 7);
+    if (selectedMonth === today) {
+      setDate(new Date().toISOString().split('T')[0]);
+    } else {
+      setDate(`${selectedMonth}-01`);
+    }
+    
     setModalVisible(true);
   };
 
@@ -245,6 +254,32 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 16 },
   title: { fontSize: 28, fontWeight: 'bold', color: '#1C1C1E' },
   addButton: { backgroundColor: '#007AFF', width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  monthSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  monthArrow: {
+    padding: 4,
+  },
+  monthDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  monthText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+  },
   filterContainer: { flexDirection: 'row', backgroundColor: '#E5E5EA', borderRadius: 8, padding: 2, marginBottom: 16 },
   filterTab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 6 },
   filterTabActive: { backgroundColor: '#fff' },
@@ -280,4 +315,6 @@ const styles = StyleSheet.create({
   categoryOptionText: { fontSize: 13, fontWeight: '500', color: '#3A3A3C' },
   saveBtn: { backgroundColor: '#007AFF', borderRadius: 12, height: 54, justifyContent: 'center', alignItems: 'center', marginTop: 12, marginBottom: 24 },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+});
+xt: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });

@@ -6,17 +6,17 @@ import { formatCurrency, getCurrentMonthName } from '../../utils/formatters';
 import { Wallet, TrendingUp, Landmark, Calculator, Calendar } from 'lucide-react-native';
 
 export function Dashboard() {
-  const { budgetSummary, loading, refreshData, settings } = useData();
+  const { dashboardSummary, loading, refreshData, settings } = useData();
 
   const dailyLimitData = useMemo(() => {
-    if (!budgetSummary) return null;
+    if (!dashboardSummary) return null;
     
     const today = new Date();
     const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
     const daysRemaining = lastDayOfMonth - today.getDate() + 1;
     
-    const consumptionSpending = budgetSummary.needs.actual + budgetSummary.wants.actual + budgetSummary.savings.actual;
-    const remainingForConsumption = budgetSummary.monthlySalary - consumptionSpending;
+    const consumptionSpending = dashboardSummary.needs.actual + dashboardSummary.wants.actual + dashboardSummary.savings.actual;
+    const remainingForConsumption = dashboardSummary.monthlySalary - consumptionSpending;
     
     const dailyLimit = remainingForConsumption > 0 ? remainingForConsumption / daysRemaining : 0;
     
@@ -24,9 +24,9 @@ export function Dashboard() {
       dailyLimit,
       daysRemaining
     };
-  }, [budgetSummary]);
+  }, [dashboardSummary]);
 
-  if (!budgetSummary) {
+  if (!dashboardSummary) {
     return (
       <View style={styles.center}>
         <Text>Carregando dados...</Text>
@@ -58,7 +58,7 @@ export function Dashboard() {
             <Wallet size={20} color="#007AFF" />
           </View>
           <Text style={styles.summaryLabel}>Total Gasto</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(budgetSummary.totalExpense)}</Text>
+          <Text style={styles.summaryValue}>{formatCurrency(dashboardSummary.totalExpense)}</Text>
         </View>
 
         <View style={styles.summaryItem}>
@@ -75,28 +75,28 @@ export function Dashboard() {
 
       <BudgetCard 
         title="Gastos Fixos"
-        limit={budgetSummary.needs.limit}
-        actual={budgetSummary.needs.actual}
-        percentage={budgetSummary.needs.percentage}
-        remaining={budgetSummary.needs.remaining}
-        color={budgetSummary.needs.percentage > 95 ? "#ff2e2e": "#007AFF"}
+        limit={dashboardSummary.needs.limit}
+        actual={dashboardSummary.needs.actual}
+        percentage={dashboardSummary.needs.percentage}
+        remaining={dashboardSummary.needs.remaining}
+        color={dashboardSummary.needs.percentage > 95 ? "#ff2e2e": "#007AFF"}
       />
 
       <BudgetCard 
         title="Gastos Mensais"
-        limit={budgetSummary.wants.limit}
-        actual={budgetSummary.wants.actual}
-        percentage={budgetSummary.wants.percentage}
-        remaining={budgetSummary.wants.remaining}
-        color={budgetSummary.wants.percentage > 95 ? "#ff2e2e": "#FF9500"}
+        limit={dashboardSummary.wants.limit}
+        actual={dashboardSummary.wants.actual}
+        percentage={dashboardSummary.wants.percentage}
+        remaining={dashboardSummary.wants.remaining}
+        color={dashboardSummary.wants.percentage > 95 ? "#ff2e2e": "#FF9500"}
       />
 
       <BudgetCard 
         title="Guardar"
-        limit={budgetSummary.savings.limit}
-        actual={budgetSummary.savings.actual}
-        percentage={budgetSummary.savings.percentage}
-        remaining={budgetSummary.savings.remaining}
+        limit={dashboardSummary.savings.limit}
+        actual={dashboardSummary.savings.actual}
+        percentage={dashboardSummary.savings.percentage}
+        remaining={dashboardSummary.savings.remaining}
         color="#34C759"
       />
 

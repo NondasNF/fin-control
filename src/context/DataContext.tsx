@@ -12,10 +12,13 @@ import { FixedExpenseService } from '../services/FixedExpenseService';
 interface DataContextData {
   db: SQLiteDatabase;
   categories: Category[];
-  transactions: Transaction[];
+  transactions: Transaction[]; // Transações do mês selecionado
   fixedExpenses: FixedExpense[];
   settings: Settings | null;
   budgetSummary: BudgetSummary | null;
+  dashboardSummary: BudgetSummary | null;
+  selectedMonth: string;
+  setSelectedMonth: (month: string) => void;
   loading: boolean;
   refreshData: () => Promise<void>;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
@@ -43,10 +46,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fixedExpenseService = useMemo(() => new FixedExpenseService(fixedExpenseRepo, transactionRepo), [fixedExpenseRepo, transactionRepo]);
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [currentTransactions, setCurrentTransactions] = useState<Transaction[]>([]);
+  const [selectedMonthTransactions, setSelectedMonthTransactions] = useState<Transaction[]>([]);
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
 
   const refreshData = useCallback(async () => {
     try {
@@ -54,21 +59,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       
       const currentYearMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
       
-      // Limpeza temporária: Se houver transações órfãs do bug anterior (is_fixed=1 mas sem fixed_expense_id)
-      // vamos tentar vinculá-las ou removê-las se forem duplicatas óbvias.
-      // Como o banco acabou de ser alterado, o processMonthlyFixedExpenses agora usa o novo ID.
-      
       await fixedExpenseService.processMonthlyFixedExpenses(currentYearMonth);
 
-      const [categoriesData, transactionsData, fixedExpensesData, settingsData] = await Promise.all([
+      const [categoriesData, currentTransactionsData, selectedTransactionsData, fixedExpensesData, settingsData] = await Promise.all([
         categoryRepo.findAll(),
         transactionRepo.findByMonth(currentYearMonth),
+        selectedMonth === currentYearMonth ? transactionRepo.findByMonth(currentYearMonth) : transactionRepo.findByMonth(selectedMonth),
         fixedExpenseRepo.findAll(),
         settingsRepo.find()
       ]);
 
       setCategories(categoriesData);
-      setTransactions(transactionsData);
+      setCurrentTransactions(currentTransactionsData);
+      setSelectedMonthTransactions(selectedTransactionsData);
       setFixedExpenses(fixedExpensesData);
       setSettings(settingsData);
     } catch (error) {
@@ -76,12 +79,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [categoryRepo, transactionRepo, fixedExpenseRepo, settingsRepo, fixedExpenseService]);
+  }, [categoryRepo, transactionRepo, fixedExpenseRepo, settingsRepo, fixedExpenseService, selectedMonth]);
 
   const budgetSummary = useMemo(() => {
     if (!settings || categories.length === 0) return null;
-    return budgetService.calculateBudgetSummary(settings.monthly_salary, transactions, categories);
-  }, [settings, transactions, categories, budgetService]);
+    return budgetService.calculateBudgetSummary(settings.monthly_salary, selectedMonthTransactions, categories);
+  }, [settings, selectedMonthTransactions, categories, budgetService]);
+
+  const dashboardSummary = useMemo(() => {
+    if (!settings || categories.length === 0) return null;
+    return budgetService.calculateBudgetSummary(settings.monthly_salary, currentTransactions, categories);
+  }, [settings, currentTransactions, categories, budgetService]);
 
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     try {
@@ -164,10 +172,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       value={{
         db,
         categories,
-        transactions,
+        transactions: selectedMonthTransactions,
         fixedExpenses,
         settings,
         budgetSummary,
+        dashboardSummary,
+        selectedMonth,
+        setSelectedMonth,
         loading,
         refreshData,
         addTransaction,
