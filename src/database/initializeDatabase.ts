@@ -18,8 +18,12 @@ export async function initializeDatabase(database: SQLiteDatabase) {
         await database.execAsync('ALTER TABLE transactions ADD COLUMN fixed_expense_id INTEGER REFERENCES fixed_expenses(id) ON DELETE SET NULL;');
         console.log('[Database] Coluna fixed_expense_id adicionada com sucesso.');
       }
+
+      // Limpa transações automáticas antigas (is_fixed = 1) para evitar duplicação com a nova lógica
+      await database.execAsync('DELETE FROM transactions WHERE is_fixed = 1;');
+      console.log('[Database] Transações automáticas antigas removidas.');
     } catch (e) {
-      console.error('[Database] Erro ao verificar/migrar coluna:', e);
+      console.error('[Database] Erro ao verificar/migrar/limpar coluna:', e);
     }
 
     await database.execAsync(`

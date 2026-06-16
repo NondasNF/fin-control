@@ -1,4 +1,4 @@
-import { Category, Transaction } from '../types/database';
+import { FixedExpense, Transaction } from '../types/database';
 
 export interface BudgetSummary {
   monthlySalary: number;
@@ -26,18 +26,18 @@ export interface BudgetSummary {
 export class BudgetService {
   /**
    * Calcula o resumo do orçamento com base na metodologia 50/30/20.
+   * - Needs (Necessidades): Soma de todas as despesas fixas ATIVAS.
+   * - Wants (Desejos): Soma de todas as transações de despesa manuais.
+   * - Savings (Reserva/Investimento): O que sobra do salário após Needs e Wants.
    */
   calculateBudgetSummary(
     monthlySalary: number,
     transactions: Transaction[],
-    categories: Category[]
+    fixedExpenses: FixedExpense[]
   ): BudgetSummary {
     const needsLimit = monthlySalary * 0.5;
     const wantsLimit = monthlySalary * 0.3;
     const savingsLimit = monthlySalary * 0.2;
-
-    // Mapeia categorias por ID para facilitar busca
-    const categoryMap = new Map(categories.map(c => [c.id, c]));
 
     const actuals = {
       needs: 0,
@@ -45,18 +45,23 @@ export class BudgetService {
       savings: 0,
     };
 
-    transactions.forEach(t => {
-      if (t.type === 'expense') {
-        const category = categoryMap.get(t.category_id);
-        if (category) {
-          if (category.rule_group === 'needs') actuals.needs += t.amount;
-          if (category.rule_group === 'wants') actuals.wants += t.amount;
-          if (category.rule_group === 'savings') actuals.savings += t.amount;
-        }
+    // Needs: Soma das despesas fixas ativas
+    fixedExpenses.forEach(fe => {
+      if (fe.active) {
+        actuals.needs += fe.amount;
       }
     });
 
-    actuals.savings = (monthlySalary - (actuals.needs + actuals.wants)) > savingsLimit ? savingsLimit : (monthlySalary - (actuals.needs + actuals.wants));
+    // Wants: Soma das transações de despesa (agora todas são consideradas Wants)
+    transactions.forEach(t => {
+      if (t.type === 'expense') {
+        actuals.wants += t.amount;
+      }
+    });
+
+    // Savings: O que sobra do salário (ou o limite se sobrar mais que o planejado)
+    const remainingAfterEssentials = monthlySalary - (actuals.needs + actuals.wants);
+    actuals.savings = remainingAfterEssentials > 0 ? remainingAfterEssentials : 0;
 
     return {
       monthlySalary,

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } 
 import { useData } from '../../context/DataContext';
 import { ReportService, CategorySpending } from '../../services/ReportService';
 import { TransactionRepository } from '../../database/repositories/TransactionRepository';
+import { FixedExpenseRepository } from '../../database/repositories/FixedExpenseRepository';
 import { formatCurrency, formatMonthYear } from '../../utils/formatters';
 import { PieChart, ArrowDownCircle, ArrowUpCircle, Wallet, ChevronLeft, ChevronRight, Calendar } from 'lucide-react-native';
 
@@ -12,7 +13,10 @@ export function Reports() {
   const [monthlyBalance, setMonthlyBalance] = useState({ income: 0, expense: 0, balance: 0 });
 
   const reportService = useMemo(() => {
-    return new ReportService(new TransactionRepository(db));
+    return new ReportService(
+      new TransactionRepository(db),
+      new FixedExpenseRepository(db)
+    );
   }, [db]);
 
   const handlePrevMonth = () => {

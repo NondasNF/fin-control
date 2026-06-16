@@ -59,8 +59,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       
       const currentYearMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
       
-      await fixedExpenseService.processMonthlyFixedExpenses(currentYearMonth);
-
       const [categoriesData, currentTransactionsData, selectedTransactionsData, fixedExpensesData, settingsData] = await Promise.all([
         categoryRepo.findAll(),
         transactionRepo.findByMonth(currentYearMonth),
@@ -79,17 +77,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [categoryRepo, transactionRepo, fixedExpenseRepo, settingsRepo, fixedExpenseService, selectedMonth]);
+  }, [categoryRepo, transactionRepo, fixedExpenseRepo, settingsRepo, selectedMonth]);
 
   const budgetSummary = useMemo(() => {
-    if (!settings || categories.length === 0) return null;
-    return budgetService.calculateBudgetSummary(settings.monthly_salary, selectedMonthTransactions, categories);
-  }, [settings, selectedMonthTransactions, categories, budgetService]);
+    if (!settings) return null;
+    return budgetService.calculateBudgetSummary(settings.monthly_salary, selectedMonthTransactions, fixedExpenses);
+  }, [settings, selectedMonthTransactions, fixedExpenses, budgetService]);
 
   const dashboardSummary = useMemo(() => {
-    if (!settings || categories.length === 0) return null;
-    return budgetService.calculateBudgetSummary(settings.monthly_salary, currentTransactions, categories);
-  }, [settings, currentTransactions, categories, budgetService]);
+    if (!settings) return null;
+    return budgetService.calculateBudgetSummary(settings.monthly_salary, currentTransactions, fixedExpenses);
+  }, [settings, currentTransactions, fixedExpenses, budgetService]);
 
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     try {
