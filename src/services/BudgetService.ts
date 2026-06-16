@@ -59,9 +59,12 @@ export class BudgetService {
       }
     });
 
-    // Savings: O que sobra do salário (ou o limite se sobrar mais que o planejado)
-    const remainingAfterEssentials = monthlySalary - (actuals.needs + actuals.wants);
-    actuals.savings = remainingAfterEssentials > 0 ? remainingAfterEssentials : 0;
+    // Savings: Alvo de 20%. Se estourar Needs ou Wants, subtrai do que seria guardado.
+    const potentialSavings = savingsLimit;
+    const needsExcess = actuals.needs > needsLimit ? actuals.needs - needsLimit : 0;
+    const wantsExcess = actuals.wants > wantsLimit ? actuals.wants - wantsLimit : 0;
+    
+    actuals.savings = Math.max(0, potentialSavings - (needsExcess + wantsExcess));
 
     return {
       monthlySalary,
