@@ -74,6 +74,10 @@ export const restoreDatabase = async (db: SQLiteDatabase, jsonString: string) =>
 
       console.log(`[BackupService] Restaurando ${data.transactions.length} transações...`);
       for (const t of data.transactions) {
+        // Pula transações que eram automáticas (is_fixed = 1) para evitar duplicação 
+        // com a nova lógica que calcula gastos fixos diretamente da tabela fixed_expenses
+        if (t.is_fixed === 1) continue;
+
         await db.runAsync(
           'INSERT INTO transactions (description, amount, date, type, category_id, is_fixed, fixed_expense_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
           [t.description, t.amount, t.date, t.type, t.category_id, t.is_fixed || 0, t.fixed_expense_id || null]
