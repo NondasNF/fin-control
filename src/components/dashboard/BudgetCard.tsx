@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ProgressBar } from '../common/ProgressBar';
 import { formatCurrency } from '../../utils/formatters';
+import { useData } from '../../context/DataContext';
 
 interface BudgetCardProps {
   title: string;
@@ -13,19 +14,20 @@ interface BudgetCardProps {
 }
 
 export function BudgetCard({ title, limit, actual, percentage, remaining, color }: BudgetCardProps) {
+  const { theme } = useData();
   const isOverBudget = remaining < 0;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.card }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
         {!(title === "Guardar") ?
-          <Text style={[styles.remaining, isOverBudget && styles.overBudget]}>
+          <Text style={[styles.remaining, isOverBudget ? { color: theme.danger } : { color: theme.success }]}>
             {isOverBudget ? 'Excedido: ' : 'Restante: '}
             {formatCurrency(Math.abs(remaining))}
           </Text>
           :
-          <Text style={[styles.remaining, isOverBudget && styles.overBudget]}>
+          <Text style={[styles.remaining, isOverBudget ? { color: theme.danger } : { color: theme.success }]}>
             {isOverBudget ? 'Excedido: ' : 'Faltante: '}
             {formatCurrency(Math.abs(remaining))}
           </Text>
@@ -35,8 +37,8 @@ export function BudgetCard({ title, limit, actual, percentage, remaining, color 
       <ProgressBar progress={percentage} color={color} />
 
       <View style={styles.footer}>
-        <Text style={styles.label}>Gasto: {formatCurrency(actual)}</Text>
-        <Text style={styles.label}>Limite: {formatCurrency(limit)}</Text>
+        <Text style={[styles.label, { color: theme.subtext }]}>Gasto: {formatCurrency(actual)}</Text>
+        <Text style={[styles.label, { color: theme.subtext }]}>Limite: {formatCurrency(limit)}</Text>
       </View>
     </View>
   );
@@ -44,7 +46,6 @@ export function BudgetCard({ title, limit, actual, percentage, remaining, color 
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -63,15 +64,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1C1C1E',
   },
   remaining: {
     fontSize: 14,
-    color: '#34C759',
     fontWeight: '600',
-  },
-  overBudget: {
-    color: '#FF3B30',
   },
   footer: {
     flexDirection: 'row',
@@ -80,6 +76,5 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: '#8E8E93',
   },
 });

@@ -6,7 +6,7 @@ import { Plus, X, Tag, DollarSign, Calendar, ArrowUpCircle, ArrowDownCircle, Tra
 import { Transaction } from '../../types/database';
 
 export function Transactions() {
-  const { transactions, categories, loading, refreshData, addTransaction, deleteTransaction, selectedMonth, setSelectedMonth } = useData();
+  const { transactions, categories, loading, refreshData, addTransaction, deleteTransaction, selectedMonth, setSelectedMonth, theme } = useData();
   const [modalVisible, setModalVisible] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
 
@@ -95,18 +95,18 @@ export function Transactions() {
     const isExpense = item.type === 'expense';
 
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: theme.card }]}>
         <View style={styles.cardLeft}>
-          <View style={[styles.iconCircle, { backgroundColor: category?.color || '#8E8E93' }]}>
+          <View style={[styles.iconCircle, { backgroundColor: category?.color || theme.subtext }]}>
             {isExpense ? <ArrowDownCircle size={20} color="#fff" /> : <ArrowUpCircle size={20} color="#fff" />}
           </View>
           <View style={styles.info}>
-            <Text style={styles.description}>{item.description}</Text>
-            <Text style={styles.category}>{category?.name} • {item.date}</Text>
+            <Text style={[styles.description, { color: theme.text }]}>{item.description}</Text>
+            <Text style={[styles.category, { color: theme.subtext }]}>{category?.name} • {item.date}</Text>
           </View>
         </View>
         <View style={styles.cardRight}>
-          <Text style={[styles.amount, { color: isExpense ? '#FF3B30' : '#34C759' }]}>
+          <Text style={[styles.amount, { color: isExpense ? theme.danger : theme.success }]}>
             {isExpense ? '-' : '+'} {formatCurrency(item.amount)}
           </Text>
           <TouchableOpacity 
@@ -114,7 +114,7 @@ export function Transactions() {
             style={styles.deleteBtn}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Trash2 size={18} color="#FF3B30" />
+            <Trash2 size={18} color={theme.danger} />
           </TouchableOpacity>
         </View>
       </View>
@@ -122,45 +122,45 @@ export function Transactions() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Transações</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleOpenModal}>
+        <Text style={[styles.title, { color: theme.text }]}>Transações</Text>
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.primary }]} onPress={handleOpenModal}>
           <Plus size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.monthSelector}>
+      <View style={[styles.monthSelector, { backgroundColor: theme.card }]}>
         <TouchableOpacity onPress={handlePrevMonth} style={styles.monthArrow}>
-          <ChevronLeft size={24} color="#007AFF" />
+          <ChevronLeft size={24} color={theme.primary} />
         </TouchableOpacity>
         <View style={styles.monthDisplay}>
-          <Calendar size={20} color="#007AFF" style={{ marginRight: 8 }} />
-          <Text style={styles.monthText}>{formatMonth(selectedMonth)}</Text>
+          <Calendar size={20} color={theme.primary} style={{ marginRight: 8 }} />
+          <Text style={[styles.monthText, { color: theme.text }]}>{formatMonth(selectedMonth)}</Text>
         </View>
         <TouchableOpacity onPress={handleNextMonth} style={styles.monthArrow}>
-          <ChevronRight size={24} color="#007AFF" />
+          <ChevronRight size={24} color={theme.primary} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.filterContainer}>
+      <View style={[styles.filterContainer, { backgroundColor: theme.iconBackground.gray }]}>
         <TouchableOpacity 
-          style={[styles.filterTab, filterType === 'all' && styles.filterTabActive]} 
+          style={[styles.filterTab, filterType === 'all' && [styles.filterTabActive, { backgroundColor: theme.card }]]} 
           onPress={() => setFilterType('all')}
         >
-          <Text style={[styles.filterText, filterType === 'all' && styles.filterTextActive]}>Todas</Text>
+          <Text style={[styles.filterText, filterType === 'all' && [styles.filterTextActive, { color: theme.text }]]}>Todas</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.filterTab, filterType === 'income' && styles.filterTabActive]} 
+          style={[styles.filterTab, filterType === 'income' && [styles.filterTabActive, { backgroundColor: theme.card }]]} 
           onPress={() => setFilterType('income')}
         >
-          <Text style={[styles.filterText, filterType === 'income' && styles.filterTextActive]}>Entradas</Text>
+          <Text style={[styles.filterText, filterType === 'income' && [styles.filterTextActive, { color: theme.text }]]}>Entradas</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.filterTab, filterType === 'expense' && styles.filterTabActive]} 
+          style={[styles.filterTab, filterType === 'expense' && [styles.filterTabActive, { backgroundColor: theme.card }]]} 
           onPress={() => setFilterType('expense')}
         >
-          <Text style={[styles.filterText, filterType === 'expense' && styles.filterTextActive]}>Saídas</Text>
+          <Text style={[styles.filterText, filterType === 'expense' && [styles.filterTextActive, { color: theme.text }]]}>Saídas</Text>
         </TouchableOpacity>
       </View>
 
@@ -171,7 +171,7 @@ export function Transactions() {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Nenhuma transação encontrada.</Text>
+            <Text style={[styles.emptyText, { color: theme.subtext }]}>Nenhuma transação encontrada.</Text>
           </View>
         }
         refreshing={loading}
@@ -180,39 +180,40 @@ export function Transactions() {
 
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Nova Transação</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Nova Transação</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <X size={24} color="#8E8E93" />
+                <X size={24} color={theme.subtext} />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.typeSelector}>
                 <TouchableOpacity 
-                  style={[styles.typeBtn, type === 'expense' && styles.typeBtnExpense]} 
+                  style={[styles.typeBtn, { borderColor: theme.border }, type === 'expense' && [styles.typeBtnExpense, { backgroundColor: theme.danger, borderColor: theme.danger }]]} 
                   onPress={() => setType('expense')}
                 >
-                  <ArrowDownCircle size={20} color={type === 'expense' ? '#fff' : '#FF3B30'} />
-                  <Text style={[styles.typeBtnText, type === 'expense' && { color: '#fff' }]}>Despesa</Text>
+                  <ArrowDownCircle size={20} color={type === 'expense' ? '#fff' : theme.danger} />
+                  <Text style={[styles.typeBtnText, { color: theme.text }, type === 'expense' && { color: '#fff' }]}>Despesa</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={[styles.typeBtn, type === 'income' && styles.typeBtnIncome]} 
+                  style={[styles.typeBtn, { borderColor: theme.border }, type === 'income' && [styles.typeBtnIncome, { backgroundColor: theme.success, borderColor: theme.success }]]} 
                   onPress={() => setType('income')}
                 >
-                  <ArrowUpCircle size={20} color={type === 'income' ? '#fff' : '#34C759'} />
-                  <Text style={[styles.typeBtnText, type === 'income' && { color: '#fff' }]}>Receita</Text>
+                  <ArrowUpCircle size={20} color={type === 'income' ? '#fff' : theme.success} />
+                  <Text style={[styles.typeBtnText, { color: theme.text }, type === 'income' && { color: '#fff' }]}>Receita</Text>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Descrição</Text>
-                <View style={styles.inputWrapper}>
-                  <Tag size={20} color="#8E8E93" />
+                <Text style={[styles.label, { color: theme.text }]}>Descrição</Text>
+                <View style={[styles.inputWrapper, { backgroundColor: theme.background }]}>
+                  <Tag size={20} color={theme.subtext} />
                   <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { color: theme.text }]} 
                     placeholder="Ex: Almoço, Salário..."
+                    placeholderTextColor={theme.subtext}
                     value={description}
                     onChangeText={setDescription}
                   />
@@ -220,12 +221,13 @@ export function Transactions() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Valor</Text>
-                <View style={styles.inputWrapper}>
-                  <DollarSign size={20} color="#8E8E93" />
+                <Text style={[styles.label, { color: theme.text }]}>Valor</Text>
+                <View style={[styles.inputWrapper, { backgroundColor: theme.background }]}>
+                  <DollarSign size={20} color={theme.subtext} />
                   <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { color: theme.text }]} 
                     placeholder="0,00"
+                    placeholderTextColor={theme.subtext}
                     keyboardType="numeric"
                     value={amount}
                     onChangeText={setAmount}
@@ -234,12 +236,13 @@ export function Transactions() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Data</Text>
-                <View style={styles.inputWrapper}>
-                  <Calendar size={20} color="#8E8E93" />
+                <Text style={[styles.label, { color: theme.text }]}>Data</Text>
+                <View style={[styles.inputWrapper, { backgroundColor: theme.background }]}>
+                  <Calendar size={20} color={theme.subtext} />
                   <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { color: theme.text }]} 
                     placeholder="YYYY-MM-DD"
+                    placeholderTextColor={theme.subtext}
                     value={date}
                     onChangeText={setDate}
                   />
@@ -247,19 +250,21 @@ export function Transactions() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Categoria</Text>
+                <Text style={[styles.label, { color: theme.text }]}>Categoria</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryList}>
                   {categories.filter(c => c.type === type).map(cat => (
                     <TouchableOpacity 
                       key={cat.id} 
                       style={[
                         styles.categoryOption, 
+                        { backgroundColor: theme.iconBackground.gray },
                         categoryId === cat.id && { backgroundColor: cat.color }
                       ]}
                       onPress={() => setCategoryId(cat.id)}
                     >
                       <Text style={[
                         styles.categoryOptionText,
+                        { color: theme.text },
                         categoryId === cat.id && { color: '#fff' }
                       ]}>
                         {cat.name}
@@ -269,7 +274,7 @@ export function Transactions() {
                 </ScrollView>
               </View>
 
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+              <TouchableOpacity style={[styles.saveBtn, { backgroundColor: theme.primary }]} onPress={handleSave}>
                 <Text style={styles.saveBtnText}>Adicionar Transação</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -281,15 +286,14 @@ export function Transactions() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7', padding: 16 },
+  container: { flex: 1, padding: 16 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 16 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1C1C1E' },
-  addButton: { backgroundColor: '#007AFF', width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  title: { fontSize: 28, fontWeight: 'bold' },
+  addButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   monthSelector: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
@@ -309,41 +313,40 @@ const styles = StyleSheet.create({
   monthText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1C1C1E',
   },
-  filterContainer: { flexDirection: 'row', backgroundColor: '#E5E5EA', borderRadius: 8, padding: 2, marginBottom: 16 },
+  filterContainer: { flexDirection: 'row', borderRadius: 8, padding: 2, marginBottom: 16 },
   filterTab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 6 },
-  filterTabActive: { backgroundColor: '#fff' },
-  filterText: { fontSize: 13, color: '#8E8E93', fontWeight: '500' },
-  filterTextActive: { color: '#1C1C1E' },
+  filterTabActive: { },
+  filterText: { fontSize: 13, fontWeight: '500' },
+  filterTextActive: { },
   listContent: { paddingBottom: 24 },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  card: { borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   cardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   info: { flex: 1 },
-  description: { fontSize: 16, fontWeight: '600', color: '#1C1C1E' },
-  category: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
+  description: { fontSize: 16, fontWeight: '600' },
+  category: { fontSize: 12, marginTop: 2 },
   cardRight: { alignItems: 'flex-end' },
   amount: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
   deleteBtn: { padding: 4 },
   emptyState: { alignItems: 'center', marginTop: 40 },
-  emptyText: { color: '#8E8E93', fontSize: 16 },
+  emptyText: { fontSize: 16 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
+  modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
   modalTitle: { fontSize: 20, fontWeight: 'bold' },
   typeSelector: { flexDirection: 'row', gap: 12, marginBottom: 24 },
-  typeBtn: { flex: 1, flexDirection: 'row', height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, borderColor: '#E5E5EA', gap: 8 },
-  typeBtnExpense: { backgroundColor: '#FF3B30', borderColor: '#FF3B30' },
-  typeBtnIncome: { backgroundColor: '#34C759', borderColor: '#34C759' },
+  typeBtn: { flex: 1, flexDirection: 'row', height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, gap: 8 },
+  typeBtnExpense: { },
+  typeBtnIncome: { },
   typeBtnText: { fontWeight: '600' },
   inputGroup: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', color: '#3A3A3C', marginBottom: 8 },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2F2F7', borderRadius: 12, paddingHorizontal: 12, height: 50 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  inputWrapper: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, height: 50 },
   input: { flex: 1, marginLeft: 10, fontSize: 16 },
   categoryList: { marginTop: 4 },
-  categoryOption: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#E5E5EA', marginRight: 8 },
-  categoryOptionText: { fontSize: 13, fontWeight: '500', color: '#3A3A3C' },
-  saveBtn: { backgroundColor: '#007AFF', borderRadius: 12, height: 54, justifyContent: 'center', alignItems: 'center', marginTop: 12, marginBottom: 24 },
+  categoryOption: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginRight: 8 },
+  categoryOptionText: { fontSize: 13, fontWeight: '500' },
+  saveBtn: { borderRadius: 12, height: 54, justifyContent: 'center', alignItems: 'center', marginTop: 12, marginBottom: 24 },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });

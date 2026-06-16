@@ -1,8 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LayoutDashboard, ArrowLeftRight, CalendarClock, PieChart, Settings as SettingsIcon } from 'lucide-react-native';
+import { useData } from '../context/DataContext';
 
 import { Dashboard } from '../screens/Dashboard';
 import { Transactions } from '../screens/Transactions';
@@ -13,18 +14,32 @@ import { Settings } from '../screens/Settings';
 const Tab = createBottomTabNavigator();
 
 export function AppRoutes() {
+  const { theme, isDark } = useData();
+
+  const MyTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      primary: theme.primary,
+      background: theme.background,
+      card: theme.card,
+      text: theme.text,
+      border: theme.border,
+    },
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <NavigationContainer>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.card }}>
+      <NavigationContainer theme={MyTheme}>
         <Tab.Navigator
           screenOptions={{
             headerShown: false,
-            tabBarActiveTintColor: '#007AFF',
-            tabBarInactiveTintColor: '#8E8E93',
+            tabBarActiveTintColor: theme.primary,
+            tabBarInactiveTintColor: theme.subtext,
             tabBarStyle: {
-              backgroundColor: '#fff',
+              backgroundColor: theme.card,
               borderTopWidth: 1,
-              borderTopColor: '#E5E5EA',
+              borderTopColor: theme.border,
               height: 60,
               paddingBottom: 8,
             }

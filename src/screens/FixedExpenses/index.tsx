@@ -13,7 +13,8 @@ export function FixedExpenses() {
     refreshData, 
     addFixedExpense, 
     updateFixedExpense, 
-    deleteFixedExpense 
+    deleteFixedExpense,
+    theme
   } = useData();
   const [modalVisible, setModalVisible] = useState(false);
   
@@ -100,15 +101,15 @@ export function FixedExpenses() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Gastos Fixos</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => handleOpenModal()}>
+        <Text style={[styles.title, { color: theme.text }]}>Gastos Fixos</Text>
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.primary }]} onPress={() => handleOpenModal()}>
           <Plus size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.subtitle}>
+      <Text style={[styles.subtitle, { color: theme.subtext }]}>
         Estes gastos são gerados automaticamente no início de cada mês.
       </Text>
 
@@ -118,22 +119,26 @@ export function FixedExpenses() {
           return (
             <TouchableOpacity 
               key={expense.id} 
-              style={[styles.card, expense.active === 0 && styles.inactiveCard]}
+              style={[
+                styles.card, 
+                { backgroundColor: theme.card },
+                expense.active === 0 && styles.inactiveCard
+              ]}
               onPress={() => handleOpenModal(expense)}
             >
               <View style={styles.cardInfo}>
-                <View style={[styles.categoryBadge, { backgroundColor: category?.color || '#8E8E93' }]}>
+                <View style={[styles.categoryBadge, { backgroundColor: category?.color || theme.subtext }]}>
                   <Text style={styles.categoryText}>{category?.name.substring(0, 1)}</Text>
                 </View>
                 <View>
-                  <Text style={styles.description}>{expense.description}</Text>
-                  <Text style={styles.details}>Vence dia {expense.day_due} • {category?.name}</Text>
+                  <Text style={[styles.description, { color: theme.text }]}>{expense.description}</Text>
+                  <Text style={[styles.details, { color: theme.subtext }]}>Vence dia {expense.day_due} • {category?.name}</Text>
                 </View>
               </View>
               <View style={styles.cardRight}>
-                <Text style={styles.amount}>{formatCurrency(expense.amount)}</Text>
+                <Text style={[styles.amount, { color: theme.danger }]}>{formatCurrency(expense.amount)}</Text>
                 <TouchableOpacity onPress={() => handleDelete(expense.id)}>
-                  <Trash2 size={18} color="#FF3B30" />
+                  <Trash2 size={18} color={theme.danger} />
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -143,24 +148,25 @@ export function FixedExpenses() {
 
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>
                 {editingId ? 'Editar Gasto Fixo' : 'Novo Gasto Fixo'}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <X size={24} color="#8E8E93" />
+                <X size={24} color={theme.subtext} />
               </TouchableOpacity>
             </View>
 
             <ScrollView>
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Descrição</Text>
-                <View style={styles.inputWrapper}>
-                  <Tag size={20} color="#8E8E93" />
+                <Text style={[styles.label, { color: theme.text }]}>Descrição</Text>
+                <View style={[styles.inputWrapper, { backgroundColor: theme.background }]}>
+                  <Tag size={20} color={theme.subtext} />
                   <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { color: theme.text }]} 
                     placeholder="Ex: Aluguel, Netflix..."
+                    placeholderTextColor={theme.subtext}
                     value={description}
                     onChangeText={setDescription}
                   />
@@ -168,12 +174,13 @@ export function FixedExpenses() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Valor Padrão (R$)</Text>
-                <View style={styles.inputWrapper}>
-                  <DollarSign size={20} color="#8E8E93" />
+                <Text style={[styles.label, { color: theme.text }]}>Valor Padrão (R$)</Text>
+                <View style={[styles.inputWrapper, { backgroundColor: theme.background }]}>
+                  <DollarSign size={20} color={theme.subtext} />
                   <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { color: theme.text }]} 
                     placeholder="0,00"
+                    placeholderTextColor={theme.subtext}
                     keyboardType="numeric"
                     value={amount}
                     onChangeText={setAmount}
@@ -182,12 +189,13 @@ export function FixedExpenses() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Dia do Vencimento</Text>
-                <View style={styles.inputWrapper}>
-                  <Calendar size={20} color="#8E8E93" />
+                <Text style={[styles.label, { color: theme.text }]}>Dia do Vencimento</Text>
+                <View style={[styles.inputWrapper, { backgroundColor: theme.background }]}>
+                  <Calendar size={20} color={theme.subtext} />
                   <TextInput 
-                    style={styles.input} 
+                    style={[styles.input, { color: theme.text }]} 
                     placeholder="1 a 28"
+                    placeholderTextColor={theme.subtext}
                     keyboardType="numeric"
                     maxLength={2}
                     value={dayDue}
@@ -197,19 +205,21 @@ export function FixedExpenses() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Categoria</Text>
+                <Text style={[styles.label, { color: theme.text }]}>Categoria</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryList}>
                   {categories.filter(c => c.type === 'expense').map(cat => (
                     <TouchableOpacity 
                       key={cat.id} 
                       style={[
                         styles.categoryOption, 
+                        { backgroundColor: theme.iconBackground.gray },
                         categoryId === cat.id && { backgroundColor: cat.color }
                       ]}
                       onPress={() => setCategoryId(cat.id)}
                     >
                       <Text style={[
                         styles.categoryOptionText,
+                        { color: theme.text },
                         categoryId === cat.id && { color: '#fff' }
                       ]}>
                         {cat.name}
@@ -220,15 +230,16 @@ export function FixedExpenses() {
               </View>
 
               <View style={styles.switchRow}>
-                <Text style={styles.label}>Ativo (Gerar este mês?)</Text>
+                <Text style={[styles.label, { color: theme.text }]}>Ativo (Gerar este mês?)</Text>
                 <Switch 
                   value={active} 
                   onValueChange={setActive}
-                  trackColor={{ false: '#767577', true: '#34C759' }}
+                  trackColor={{ false: theme.border, true: theme.success }}
+                  thumbColor={theme.card}
                 />
               </View>
 
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.primary }]} onPress={handleSave}>
                 <Text style={styles.saveButtonText}>Salvar Recorrência</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -242,7 +253,6 @@ export function FixedExpenses() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
     padding: 16,
   },
   header: {
@@ -255,15 +265,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1C1C1E',
   },
   subtitle: {
     fontSize: 14,
-    color: '#8E8E93',
     marginBottom: 24,
   },
   addButton: {
-    backgroundColor: '#007AFF',
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -274,7 +281,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -305,11 +311,9 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1C1C1E',
   },
   details: {
     fontSize: 12,
-    color: '#8E8E93',
     marginTop: 2,
   },
   cardRight: {
@@ -318,7 +322,6 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FF3B30',
     marginBottom: 8,
   },
   modalOverlay: {
@@ -327,7 +330,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -349,13 +351,11 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#3A3A3C',
     marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 50,
@@ -372,13 +372,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#E5E5EA',
     marginRight: 8,
   },
   categoryOptionText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#3A3A3C',
   },
   switchRow: {
     flexDirection: 'row',
@@ -388,7 +386,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   saveButton: {
-    backgroundColor: '#007AFF',
     borderRadius: 12,
     height: 54,
     justifyContent: 'center',

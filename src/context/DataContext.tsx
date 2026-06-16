@@ -1,4 +1,4 @@
-import { Alert, View } from 'react-native';
+import { Alert, View, useColorScheme } from 'react-native';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { Category, Transaction, FixedExpense, Settings } from '../types/database';
@@ -8,6 +8,7 @@ import { FixedExpenseRepository } from '../database/repositories/FixedExpenseRep
 import { SettingsRepository } from '../database/repositories/SettingsRepository';
 import { BudgetService, BudgetSummary } from '../services/BudgetService';
 import { FixedExpenseService } from '../services/FixedExpenseService';
+import { Colors, ThemeColors } from '../constants/Colors';
 
 interface DataContextData {
   db: SQLiteDatabase;
@@ -20,6 +21,8 @@ interface DataContextData {
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
   loading: boolean;
+  theme: ThemeColors;
+  isDark: boolean;
   refreshData: () => Promise<void>;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
   deleteTransaction: (id: number) => Promise<void>;
@@ -34,6 +37,10 @@ const DataContext = createContext<DataContextData>({} as DataContextData);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const db = useSQLiteContext();
+  const colorScheme = useColorScheme();
+  
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? Colors.dark : Colors.light;
   
   // Repositories
   const categoryRepo = useMemo(() => new CategoryRepository(db), [db]);
@@ -178,6 +185,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         selectedMonth,
         setSelectedMonth,
         loading,
+        theme,
+        isDark,
         refreshData,
         addTransaction,
         deleteTransaction,

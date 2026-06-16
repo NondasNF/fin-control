@@ -8,7 +8,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { Settings as SettingsIcon, Download, Upload, DollarSign, Info, Trash2 } from 'lucide-react-native';
 
 export function Settings() {
-  const { settings, updateMonthlySalary, db, refreshData, resetAllData } = useData();
+  const { settings, updateMonthlySalary, db, refreshData, resetAllData, theme } = useData();
   const [salary, setSalary] = useState(settings?.monthly_salary.toString() || '0');
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -70,57 +70,57 @@ export function Settings() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Configurações</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Configurações</Text>
       </View>
 
-      <Text style={styles.sectionTitle}>Perfil Financeiro</Text>
-      <TouchableOpacity style={styles.card} onPress={() => setIsModalVisible(true)}>
+      <Text style={[styles.sectionTitle, { color: theme.subtext }]}>Perfil Financeiro</Text>
+      <TouchableOpacity style={[styles.card, { backgroundColor: theme.card }]} onPress={() => setIsModalVisible(true)}>
         <View style={styles.cardInfo}>
-          <View style={[styles.iconBox, { backgroundColor: '#E8F9EE' }]}>
-            <DollarSign size={22} color="#34C759" />
+          <View style={[styles.iconBox, { backgroundColor: theme.iconBackground.green }]}>
+            <DollarSign size={22} color={theme.success} />
           </View>
           <View>
-            <Text style={styles.cardLabel}>Salário Mensal</Text>
-            <Text style={styles.cardValue}>{formatCurrency(settings?.monthly_salary || 0)}</Text>
+            <Text style={[styles.cardLabel, { color: theme.text }]}>Salário Mensal</Text>
+            <Text style={[styles.cardValue, { color: theme.success }]}>{formatCurrency(settings?.monthly_salary || 0)}</Text>
           </View>
         </View>
-        <Text style={styles.editText}>Editar</Text>
+        <Text style={[styles.editText, { color: theme.primary }]}>Editar</Text>
       </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Dados e Segurança</Text>
+      <Text style={[styles.sectionTitle, { color: theme.subtext }]}>Dados e Segurança</Text>
       
-      <TouchableOpacity style={styles.card} onPress={handleBackup}>
+      <TouchableOpacity style={[styles.card, { backgroundColor: theme.card }]} onPress={handleBackup}>
         <View style={styles.cardInfo}>
-          <View style={[styles.iconBox, { backgroundColor: '#E5F1FF' }]}>
-            <Download size={22} color="#007AFF" />
+          <View style={[styles.iconBox, { backgroundColor: theme.iconBackground.blue }]}>
+            <Download size={22} color={theme.primary} />
           </View>
-          <Text style={styles.cardLabel}>Exportar Backup JSON</Text>
+          <Text style={[styles.cardLabel, { color: theme.text }]}>Exportar Backup JSON</Text>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.card} onPress={handleRestore}>
+      <TouchableOpacity style={[styles.card, { backgroundColor: theme.card }]} onPress={handleRestore}>
         <View style={styles.cardInfo}>
-          <View style={[styles.iconBox, { backgroundColor: '#FFF9E5' }]}>
-            <Upload size={22} color="#FF9500" />
+          <View style={[styles.iconBox, { backgroundColor: theme.iconBackground.orange }]}>
+            <Upload size={22} color={theme.warning} />
           </View>
-          <Text style={styles.cardLabel}>Importar Backup JSON</Text>
+          <Text style={[styles.cardLabel, { color: theme.text }]}>Importar Backup JSON</Text>
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.card} onPress={handleResetData}>
+      <TouchableOpacity style={[styles.card, { backgroundColor: theme.card }]} onPress={handleResetData}>
         <View style={styles.cardInfo}>
-          <View style={[styles.iconBox, { backgroundColor: '#FFF2F0' }]}>
-            <Trash2 size={22} color="#FF3B30" />
+          <View style={[styles.iconBox, { backgroundColor: theme.iconBackground.red }]}>
+            <Trash2 size={22} color={theme.danger} />
           </View>
-          <Text style={[styles.cardLabel, { color: '#FF3B30' }]}>Limpar Todos os Dados</Text>
+          <Text style={[styles.cardLabel, { color: theme.danger }]}>Limpar Todos os Dados</Text>
         </View>
       </TouchableOpacity>
 
-      <View style={styles.infoBox}>
-        <Info size={20} color="#8E8E93" />
-        <Text style={styles.infoText}>
+      <View style={[styles.infoBox, { backgroundColor: theme.iconBackground.gray }]}>
+        <Info size={20} color={theme.subtext} />
+        <Text style={[styles.infoText, { color: theme.text }]}>
           Seus dados são armazenados apenas localmente neste dispositivo. Recomendamos exportar o backup regularmente.
         </Text>
       </View>
@@ -128,26 +128,27 @@ export function Settings() {
       {/* Modal Editar Salário */}
       <Modal visible={isModalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Atualizar Salário</Text>
-            <Text style={styles.modalLabel}>Insira o valor base mensal para os cálculos do 50/30/20:</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Atualizar Salário</Text>
+            <Text style={[styles.modalLabel, { color: theme.subtext }]}>Insira o valor base mensal para os cálculos do 50/30/20:</Text>
             
-            <View style={styles.inputWrapper}>
-              <Text style={styles.currencyPrefix}>R$</Text>
+            <View style={[styles.inputWrapper, { backgroundColor: theme.background }]}>
+              <Text style={[styles.currencyPrefix, { color: theme.text }]}>R$</Text>
               <TextInput 
-                style={styles.input}
+                style={[styles.input, { color: theme.text }]}
                 keyboardType="numeric"
                 value={salary}
                 onChangeText={setSalary}
                 autoFocus
+                placeholderTextColor={theme.subtext}
               />
             </View>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setIsModalVisible(false)}>
-                <Text style={styles.cancelBtnText}>Cancelar</Text>
+              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: theme.background }]} onPress={() => setIsModalVisible(false)}>
+                <Text style={[styles.cancelBtnText, { color: theme.subtext }]}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleUpdateSalary}>
+              <TouchableOpacity style={[styles.saveBtn, { backgroundColor: theme.success }]} onPress={handleUpdateSalary}>
                 <Text style={styles.saveBtnText}>Salvar</Text>
               </TouchableOpacity>
             </View>
@@ -161,28 +162,28 @@ export function Settings() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7', padding: 16 },
+  container: { flex: 1, padding: 16 },
   header: { marginTop: 8, marginBottom: 24 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1C1C1E' },
-  sectionTitle: { fontSize: 13, color: '#8E8E93', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, fontWeight: '600' },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  title: { fontSize: 28, fontWeight: 'bold' },
+  sectionTitle: { fontSize: 13, textTransform: 'uppercase', marginBottom: 8, marginLeft: 4, fontWeight: '600' },
+  card: { borderRadius: 12, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   cardInfo: { flexDirection: 'row', alignItems: 'center' },
   iconBox: { width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  cardLabel: { fontSize: 16, color: '#1C1C1E', fontWeight: '500' },
-  cardValue: { fontSize: 18, fontWeight: 'bold', color: '#34C759', marginTop: 2 },
-  editText: { color: '#007AFF', fontWeight: '600' },
-  infoBox: { flexDirection: 'row', backgroundColor: '#E5E5EA', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 24 },
-  infoText: { fontSize: 12, color: '#3A3A3C', marginLeft: 12, flex: 1, lineHeight: 18 },
+  cardLabel: { fontSize: 16, fontWeight: '500' },
+  cardValue: { fontSize: 18, fontWeight: 'bold', marginTop: 2 },
+  editText: { fontWeight: '600' },
+  infoBox: { flexDirection: 'row', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 24 },
+  infoText: { fontSize: 12, marginLeft: 12, flex: 1, lineHeight: 18 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  modalContent: { backgroundColor: '#fff', borderRadius: 20, padding: 24, width: '100%' },
+  modalContent: { borderRadius: 20, padding: 24, width: '100%' },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
-  modalLabel: { fontSize: 14, color: '#8E8E93', marginBottom: 20, lineHeight: 20 },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2F2F7', borderRadius: 12, paddingHorizontal: 16, height: 60, marginBottom: 24 },
-  currencyPrefix: { fontSize: 18, fontWeight: 'bold', color: '#1C1C1E', marginRight: 8 },
+  modalLabel: { fontSize: 14, marginBottom: 20, lineHeight: 20 },
+  inputWrapper: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 16, height: 60, marginBottom: 24 },
+  currencyPrefix: { fontSize: 18, fontWeight: 'bold', marginRight: 8 },
   input: { flex: 1, fontSize: 22, fontWeight: 'bold' },
   modalButtons: { flexDirection: 'row', gap: 12 },
-  cancelBtn: { flex: 1, height: 50, justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: '#F2F2F7' },
-  cancelBtnText: { color: '#8E8E93', fontWeight: '600' },
-  saveBtn: { flex: 1, height: 50, justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: '#34C759' },
+  cancelBtn: { flex: 1, height: 50, justifyContent: 'center', alignItems: 'center', borderRadius: 12 },
+  cancelBtnText: { fontWeight: '600' },
+  saveBtn: { flex: 1, height: 50, justifyContent: 'center', alignItems: 'center', borderRadius: 12 },
   saveBtnText: { color: '#fff', fontWeight: 'bold' },
 });
