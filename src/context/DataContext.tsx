@@ -1,4 +1,4 @@
-import { Alert, View, useColorScheme } from 'react-native';
+import { Alert, AppState, Platform, View, useColorScheme } from 'react-native';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { Category, Transaction, FixedExpense, Settings } from '../types/database';
@@ -9,6 +9,8 @@ import { SettingsRepository } from '../database/repositories/SettingsRepository'
 import { BudgetService, BudgetSummary } from '../services/BudgetService';
 import { BudgetAlertService, type BudgetAlertState } from '../services/BudgetAlertService';
 import { FixedExpenseService } from '../services/FixedExpenseService';
+import { TransactionService } from '../services/TransactionService';
+import { isNubankListenerAvailable } from '../../modules/nubank-notifications';
 import { Colors, ThemeColors } from '../constants/Colors';
 
 interface DataContextData {
@@ -25,7 +27,7 @@ interface DataContextData {
   loading: boolean;
   theme: ThemeColors;
   isDark: boolean;
-  refreshData: () => Promise<void>;
+  refreshData: (showLoading?: boolean) => Promise<void>;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
   deleteTransaction: (id: number) => Promise<void>;
   updateMonthlySalary: (amount: number) => Promise<void>;
@@ -52,6 +54,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   // Services
   const budgetService = useMemo(() => new BudgetService(), []);
+  const transactionService = useMemo(() => new TransactionService(transactionRepo), [transactionRepo]);
   const fixedExpenseService = useMemo(() => new FixedExpenseService(fixedExpenseRepo, transactionRepo), [fixedExpenseRepo, transactionRepo]);
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -62,9 +65,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
 
-  const refreshData = useCallback(async () => {
+  const refreshData = useCallback(async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       
       const currentYearMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
       
@@ -84,7 +89,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error refreshing data:', error);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, [categoryRepo, transactionRepo, fixedExpenseRepo, settingsRepo, selectedMonth]);
 
@@ -105,7 +112,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     try {
-      await transactionRepo.create(transaction);
+      await transactionService.addTransaction(transaction);
       await refreshData();
     } catch (error) {
       console.error('Error adding transaction:', error);
@@ -168,7 +175,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const resetAllData = async () => {
     try {
-      await db.execAsync('DELETE FROM transactions; DELETE FROM fixed_expenses;');
+      await db.execAsync('DELETE FROM transactions; DELETE FROM fixed_expenses; DELETE FROM imported_bank_notifications;');
       await refreshData();
     } catch (error) {
       console.error('Error resetting data:', error);
@@ -177,6 +184,29 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     refreshData();
+  }, [refreshData]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android' || !isNubankListenerAvailable) {
+      return;
+    }
+
+    const refreshIfActive = () => {
+      if (AppState.currentState === 'active') {
+        void refreshData(false);
+      }
+    };
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        void refreshData(false);
+      }
+    });
+    const interval = setInterval(refreshIfActive, 5000);
+
+    return () => {
+      appStateSubscription.remove();
+      clearInterval(interval);
+    };
   }, [refreshData]);
 
   useEffect(() => {

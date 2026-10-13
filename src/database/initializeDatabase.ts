@@ -75,6 +75,12 @@ export async function initializeDatabase(database: SQLiteDatabase) {
         FOREIGN KEY (fixed_expense_id) REFERENCES fixed_expenses (id) ON DELETE SET NULL
       );
 
+      CREATE TABLE IF NOT EXISTS imported_bank_notifications (
+        notification_id TEXT PRIMARY KEY NOT NULL,
+        transaction_id INTEGER NOT NULL,
+        imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Índices para otimização de consultas
       CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
       CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id);

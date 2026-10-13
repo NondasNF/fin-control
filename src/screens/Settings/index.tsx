@@ -1,16 +1,77 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Modal } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AppState, Platform, View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Modal } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { backupDatabase, restoreDatabase } from '../../services/backupService';
+import { ensureNotificationPermission } from '../../services/NotificationService';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import { Settings as SettingsIcon, Download, Upload, DollarSign, Info, Trash2 } from 'lucide-react-native';
+import { Bell, Download, Upload, DollarSign, Info, Trash2 } from 'lucide-react-native';
+import {
+  isNubankListenerAvailable,
+  isNubankNotificationAccessEnabled,
+  openNubankNotificationAccessSettings,
+} from '../../../modules/nubank-notifications';
 
 export function Settings() {
   const { settings, updateMonthlySalary, db, refreshData, resetAllData, theme } = useData();
   const [salary, setSalary] = useState(settings?.monthly_salary.toString() || '0');
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [nubankListenerEnabled, setNubankListenerEnabled] = useState<boolean | null>(null);
+
+  const refreshNubankListenerStatus = useCallback(() => {
+    if (Platform.OS !== 'android' || !isNubankListenerAvailable) {
+      setNubankListenerEnabled(false);
+      return;
+    }
+
+    try {
+      setNubankListenerEnabled(isNubankNotificationAccessEnabled());
+    } catch (error) {
+      console.error('[Settings] Falha ao verificar acesso às notificações:', error);
+      setNubankListenerEnabled(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshNubankListenerStatus();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        refreshNubankListenerStatus();
+      }
+    });
+    return () => subscription.remove();
+  }, [refreshNubankListenerStatus]);
+
+  const handleConfigureNubankCapture = async () => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+
+    if (!isNubankListenerAvailable) {
+      Alert.alert(
+        'Build Android necessário',
+        'A captura do Nubank usa um serviço nativo e não está disponível no Expo Go. Instale o build Android de desenvolvimento do FinControl para ativá-la.'
+      );
+      return;
+    }
+
+    const notificationsAllowed = await ensureNotificationPermission();
+    if (!notificationsAllowed) {
+      Alert.alert(
+        'Notificações desativadas',
+        'Permita notificações para o FinControl nas configurações do Android e tente novamente.'
+      );
+      return;
+    }
+
+    try {
+      openNubankNotificationAccessSettings();
+    } catch (error) {
+      console.error('[Settings] Falha ao abrir acesso às notificações:', error);
+      Alert.alert('Erro', 'Não foi possível abrir as configurações de acesso às notificações.');
+    }
+  };
 
   const handleUpdateSalary = async () => {
     const numSalary = parseFloat(salary.replace(',', '.'));
@@ -88,6 +149,38 @@ export function Settings() {
         </View>
         <Text style={[styles.editText, { color: theme.primary }]}>Editar</Text>
       </TouchableOpacity>
+
+      {Platform.OS === 'android' && (
+        <>
+          <Text style={[styles.sectionTitle, { color: theme.subtext }]}>Integrações</Text>
+          <TouchableOpacity
+            style={[styles.card, { backgroundColor: theme.card }]}
+            onPress={handleConfigureNubankCapture}
+          >
+            <View style={styles.cardInfo}>
+              <View style={[styles.iconBox, { backgroundColor: theme.iconBackground.orange }]}>
+                <Bell size={22} color={theme.warning} />
+              </View>
+              <View style={styles.integrationInfo}>
+                <Text style={[styles.cardLabel, { color: theme.text }]}>Captura de compras Nubank</Text>
+                <Text style={[styles.integrationStatus, { color: nubankListenerEnabled ? theme.success : theme.subtext }]}>
+                  {!isNubankListenerAvailable
+                    ? 'Requer build Android de desenvolvimento'
+                    : nubankListenerEnabled
+                      ? 'Acesso às notificações ativado'
+                      : 'Toque para configurar'}
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.editText, { color: theme.primary }]}>
+              {nubankListenerEnabled ? 'Ativo' : 'Configurar'}
+            </Text>
+          </TouchableOpacity>
+          <Text style={[styles.integrationHelp, { color: theme.subtext }]}>
+            O Android pedirá acesso especial às notificações. O FinControl filtra as compras aprovadas do Nubank e salva o estabelecimento na descrição da transação.
+          </Text>
+        </>
+      )}
 
       <Text style={[styles.sectionTitle, { color: theme.subtext }]}>Dados e Segurança</Text>
       
@@ -172,6 +265,9 @@ const styles = StyleSheet.create({
   cardLabel: { fontSize: 16, fontWeight: '500' },
   cardValue: { fontSize: 18, fontWeight: 'bold', marginTop: 2 },
   editText: { fontWeight: '600' },
+  integrationInfo: { maxWidth: '72%' },
+  integrationStatus: { fontSize: 12, marginTop: 4 },
+  integrationHelp: { fontSize: 12, lineHeight: 18, marginHorizontal: 4, marginBottom: 20 },
   infoBox: { flexDirection: 'row', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 24 },
   infoText: { fontSize: 12, marginLeft: 12, flex: 1, lineHeight: 18 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },

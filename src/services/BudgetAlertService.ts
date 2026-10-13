@@ -1,6 +1,6 @@
-import { Alert } from 'react-native';
 import { FixedExpense, Transaction } from '../types/database';
 import { formatCurrency } from '../utils/formatters';
+import { showLocalNotification } from './NotificationService';
 
 export type BudgetAlertSeverity = 'healthy' | 'warning' | 'critical';
 
@@ -109,29 +109,8 @@ export async function notifyBudgetAlertIfNeeded(
     return;
   }
 
-  lastBudgetAlertKey = alertKey;
-
-  try {
-    const notifee = require('@notifee/react-native');
-    if (notifee?.createChannel && notifee?.displayNotification) {
-      const channelId = await notifee.createChannel({
-        id: 'budget-alerts',
-        name: 'Alertas de orçamento',
-      });
-
-      await notifee.displayNotification({
-        title: alertState.title,
-        body: alertState.message,
-        android: {
-          channelId,
-          pressAction: { id: 'default' },
-        },
-      });
-      return;
-    }
-  } catch {
-    // Fallback visual para ambientes sem a biblioteca nativa.
+  const notificationScheduled = await showLocalNotification(alertState.title, alertState.message);
+  if (notificationScheduled) {
+    lastBudgetAlertKey = alertKey;
   }
-
-  Alert.alert(alertState.title, alertState.message);
 }
