@@ -25,7 +25,7 @@ export class TransactionRepository {
         data.type ?? current.type,
         data.category_id ?? current.category_id,
         data.is_fixed ?? current.is_fixed,
-        data.fixed_expense_id ?? current.fixed_expense_id,
+        data.fixed_expense_id ?? current.fixed_expense_id ?? null,
         id
       ]
     );

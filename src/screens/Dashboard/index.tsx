@@ -6,7 +6,7 @@ import { formatCurrency, getCurrentMonthName } from '../../utils/formatters';
 import { Wallet, TrendingUp, Landmark, Calculator, Calendar } from 'lucide-react-native';
 
 export function Dashboard() {
-  const { dashboardSummary, loading, refreshData, settings, theme } = useData();
+  const { dashboardSummary, budgetAlert, loading, refreshData, settings, theme } = useData();
 
   const dailyLimitData = useMemo(() => {
     if (!dashboardSummary) return null;
@@ -70,6 +70,21 @@ export function Dashboard() {
           <Text style={[styles.daysRemaining, { color: theme.subtext }]}>Restam {dailyLimitData?.daysRemaining} dias</Text>
         </View>
       </View>
+
+      {budgetAlert && (
+        <View style={[
+          styles.alertBox,
+          {
+            backgroundColor: budgetAlert.severity === 'critical' ? theme.iconBackground.red :
+              budgetAlert.severity === 'warning' ? theme.iconBackground.orange : theme.iconBackground.green,
+          }
+        ]}>
+          <Text style={[styles.alertTitle, { color: budgetAlert.severity === 'critical' ? theme.danger : budgetAlert.severity === 'warning' ? theme.warning : theme.success }]}>
+            {budgetAlert.title}
+          </Text>
+          <Text style={[styles.alertMessage, { color: theme.text }]}>{budgetAlert.message}</Text>
+        </View>
+      )}
 
       <Text style={[styles.sectionTitle, { color: theme.text }]}>Regra 50/30/20</Text>
 
@@ -159,6 +174,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 24,
+  },
+  alertBox: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  alertTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  alertMessage: {
+    fontSize: 12,
+    lineHeight: 18,
   },
   summaryItem: {
     width: '48%',

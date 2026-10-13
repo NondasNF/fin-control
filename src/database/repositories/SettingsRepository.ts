@@ -1,5 +1,5 @@
 import { type SQLiteDatabase } from 'expo-sqlite';
-import { Settings } from '../types/database';
+import { Settings } from '../../types/database';
 
 export class SettingsRepository {
   constructor(private database: SQLiteDatabase) {}

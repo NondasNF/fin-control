@@ -11,13 +11,14 @@ Muitas pessoas têm dificuldade em saber quanto podem gastar por dia ou como div
 3.  **20% - Guardar:** Reserva de emergência ou investimentos futuros.
 
 O diferencial do app é o cálculo em tempo real do **Limite por Dia**, que diz exatamente quanto você ainda pode gastar no dia de hoje para chegar ao fim do mês dentro do seu orçamento.
-x
+
 ## Principais Funcionalidades
 
 -   **Dashboard Inteligente:** Resumo visual do mês, progresso da regra 50/30/20 e limite de gasto diário.
 -   **Gestão de Gastos Fixos:** Cadastro de despesas que se repetem todos os meses para automação do orçamento.
 -   **Controle de Transações:** Registro rápido de entradas e saídas.
 -   **Relatórios Visuais:** Gráficos para entender para onde seu dinheiro está indo.
+-   **Alertas de Orçamento:** Acompanhe quando o restante mensal cair abaixo de 30% e receba aviso de limite excedido.
 -   **Banco de Dados Local:** Total privacidade. Seus dados financeiros não saem do seu celular (utiliza SQLite).
 -   **Backup e Restauração:** Segurança para seus dados através de exportação/importação de arquivos JSON.
 
@@ -49,25 +50,49 @@ src/
 ## Como Começar
 
 ### Pré-requisitos
-- Node.js instalado
-- Expo Go instalado no seu celular (para testar) ou um emulador configurado
 
-### Instalação
+- Node.js e npm instalados.
+- Git, para clonar o repositório.
+- Para testar em um celular Android/iOS: o app **Expo Go** instalado.
+- Alternativamente, um emulador Android configurado no Android Studio.
 
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/seu-usuario/fin-control.git
-   ```
+### Instalação e execução no Windows
 
-2. Instale as dependências:
-   ```bash
-   npm install
-   ```
+Os comandos do Expo devem ser executados na **raiz do projeto**, a pasta que contém `package.json`. Não os execute dentro da pasta `android`: ela não contém o `package.json` do app, por isso `npx expo start` falha com `ConfigError`.
 
-3. Inicie o projeto:
-   ```bash
-   npx expo start
-   ```
+Abra o PowerShell e execute:
+
+```powershell
+git clone https://github.com/NondasNF/fin-control.git
+cd fin-control
+npm install
+npx expo start
+```
+
+Se o projeto já estiver clonado, navegue até a pasta raiz existente. Por exemplo:
+
+```powershell
+cd C:\Users\nonda\StudioProjects\fin-control
+npm install
+npx expo start
+```
+
+Antes de iniciar, confirme que está na raiz:
+
+```powershell
+Get-Location
+Test-Path .\package.json
+```
+
+O segundo comando deve retornar `True`. Se estiver em `...\fin-control\android`, volte um nível com `cd ..` e confirme novamente.
+
+### Abrir o app
+
+- **Celular:** mantenha o computador e o celular na mesma rede Wi-Fi, abra o Expo Go e escaneie o QR code mostrado no terminal ou no navegador.
+- **Emulador Android:** inicie o emulador pelo Android Studio e pressione `a` no terminal onde o Expo está rodando.
+- **Reiniciar limpando o cache:** pare o servidor com `Ctrl+C` e rode `npx expo start --clear` na raiz do projeto.
+
+Este projeto usa Expo SDK 54. O comando `npx expo start` inicia o servidor de desenvolvimento; não é necessário executar `npm install` dentro de `android`. Avisos de vulnerabilidades do `npm install` não são a causa do erro de `package.json` ausente. Revise-os separadamente antes de considerar `npm audit fix`, especialmente a opção `--force`, que pode atualizar dependências com mudanças incompatíveis.
 
 ## Licença
 

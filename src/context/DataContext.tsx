@@ -7,6 +7,7 @@ import { TransactionRepository } from '../database/repositories/TransactionRepos
 import { FixedExpenseRepository } from '../database/repositories/FixedExpenseRepository';
 import { SettingsRepository } from '../database/repositories/SettingsRepository';
 import { BudgetService, BudgetSummary } from '../services/BudgetService';
+import { BudgetAlertService, type BudgetAlertState } from '../services/BudgetAlertService';
 import { FixedExpenseService } from '../services/FixedExpenseService';
 import { Colors, ThemeColors } from '../constants/Colors';
 
@@ -18,6 +19,7 @@ interface DataContextData {
   settings: Settings | null;
   budgetSummary: BudgetSummary | null;
   dashboardSummary: BudgetSummary | null;
+  budgetAlert: BudgetAlertState | null;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
   loading: boolean;
@@ -96,6 +98,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return budgetService.calculateBudgetSummary(settings.monthly_salary, currentTransactions, fixedExpenses);
   }, [settings, currentTransactions, fixedExpenses, budgetService]);
 
+  const budgetAlert = useMemo(() => {
+    if (!settings) return null;
+    return BudgetAlertService.buildBudgetAlertState(settings.monthly_salary, currentTransactions, fixedExpenses);
+  }, [settings, currentTransactions, fixedExpenses]);
+
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     try {
       await transactionRepo.create(transaction);
@@ -172,6 +179,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     refreshData();
   }, [refreshData]);
 
+  useEffect(() => {
+    if (!settings || !budgetAlert) {
+      return;
+    }
+
+    void BudgetAlertService.notifyBudgetAlertIfNeeded(budgetAlert);
+  }, [settings, budgetAlert]);
+
   return (
     <DataContext.Provider
       value={{
@@ -182,6 +197,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         settings,
         budgetSummary,
         dashboardSummary,
+        budgetAlert,
         selectedMonth,
         setSelectedMonth,
         loading,
