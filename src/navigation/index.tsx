@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LayoutDashboard, ArrowLeftRight, CalendarClock, PieChart, Settings as SettingsIcon } from 'lucide-react-native';
 import { useData } from '../context/DataContext';
+import { navigationRef, flushPendingNavigation } from './navigationRef';
+import { setupNotificationRouting } from '../services/notificationRouting';
 
 import { Dashboard } from '../screens/Dashboard';
 import { Transactions } from '../screens/Transactions';
@@ -15,6 +17,8 @@ const Tab = createBottomTabNavigator();
 
 export function AppRoutes() {
   const { theme, isDark } = useData();
+
+  useEffect(() => setupNotificationRouting(), []);
 
   const MyTheme = {
     ...(isDark ? DarkTheme : DefaultTheme),
@@ -30,7 +34,7 @@ export function AppRoutes() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.card }}>
-      <NavigationContainer theme={MyTheme}>
+      <NavigationContainer ref={navigationRef} onReady={flushPendingNavigation} theme={MyTheme}>
         <Tab.Navigator
           screenOptions={{
             headerShown: false,

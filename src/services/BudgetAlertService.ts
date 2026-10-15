@@ -109,7 +109,11 @@ export async function notifyBudgetAlertIfNeeded(
     return;
   }
 
-  const notificationScheduled = await showLocalNotification(alertState.title, alertState.message);
+  const notificationScheduled = await showLocalNotification(
+    alertState.title,
+    alertState.message,
+    'dashboard'
+  );
   if (notificationScheduled) {
     lastBudgetAlertKey = alertKey;
   }

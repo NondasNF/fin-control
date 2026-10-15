@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { formatCurrency } from '../utils/formatters';
+import type { NotificationRouteKey } from './notificationRouting';
 
 const NOTIFICATION_CHANNEL_ID = 'finance-alerts';
 
@@ -54,7 +55,11 @@ export async function ensureNotificationPermission(): Promise<boolean> {
   }
 }
 
-export async function showLocalNotification(title: string, body: string): Promise<boolean> {
+export async function showLocalNotification(
+  title: string,
+  body: string,
+  route?: NotificationRouteKey
+): Promise<boolean> {
   try {
     const hasPermission = await ensureNotificationPermission();
     if (!hasPermission) {
@@ -66,6 +71,7 @@ export async function showLocalNotification(title: string, body: string): Promis
         title,
         body,
         sound: 'default',
+        data: route ? { route } : {},
       },
       trigger: null,
     });
@@ -87,6 +93,7 @@ export async function notifyTransactionAdded(transaction: {
 
   await showLocalNotification(
     'Compra registrada',
-    `${transaction.description}: ${formatCurrency(transaction.amount)}`
+    `${transaction.description}: ${formatCurrency(transaction.amount)}`,
+    'transactions'
   );
 }

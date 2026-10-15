@@ -5,10 +5,13 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_HIGH
+import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.sqlite.SQLiteDatabase
+import android.net.Uri
 import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -23,6 +26,7 @@ private const val NUBANK_PACKAGE = "com.nu.production"
 private const val NOTIFICATION_CHANNEL_ID = "finance-alerts"
 private const val CATEGORY_NAME = "Compras Nubank"
 private const val TAG = "NubankNotificationListener"
+private const val ROUTE_TRANSACTIONS = "transactions"
 
 class NubankNotificationListenerService : NotificationListenerService() {
   override fun onNotificationPosted(statusBarNotification: StatusBarNotification) {
@@ -47,20 +51,25 @@ class NubankNotificationListenerService : NotificationListenerService() {
     val purchaseDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
       .format(Date(statusBarNotification.postTime))
 
-    val inserted = try {
+    val capture = try {
       insertPurchase(notificationId, purchase.amount, purchase.merchant, purchaseDate)
     } catch (error: Exception) {
       Log.e(TAG, "Falha ao registrar compra capturada do Nubank.", error)
-      false
+      CaptureResult(false, null)
     }
 
-    if (inserted) {
+    if (capture.inserted) {
       Log.i(TAG, "Compra aprovada do Nubank capturada e registrada.")
-      showNotification(
-        notificationId,
-        "Compra Nubank registrada",
-        "${purchase.merchant} • ${formatCurrency(purchase.amount)}"
-      )
+      val body = buildString {
+        append(purchase.merchant)
+        append(" • ")
+        append(formatCurrency(purchase.amount))
+        capture.budgetMessage?.let {
+          append('\n')
+          append(it)
+        }
+      }
+      showNotification(notificationId, "Compra Nubank registrada", body)
     } else {
       Log.w(TAG, "Compra Nubank não foi registrada; confira se o banco local já foi inicializado.")
       showNotification(
@@ -76,10 +85,10 @@ class NubankNotificationListenerService : NotificationListenerService() {
     amount: Double,
     merchant: String,
     date: String
-  ): Boolean {
+  ): CaptureResult {
     val databaseFile = File(File(filesDir, "SQLite"), "fincontrol.db")
     if (!databaseFile.exists()) {
-      return false
+      return CaptureResult(false, null)
     }
 
     val database = SQLiteDatabase.openDatabase(
@@ -106,12 +115,12 @@ class NubankNotificationListenerService : NotificationListenerService() {
       ).use { cursor ->
         if (cursor.moveToFirst()) {
           database.setTransactionSuccessful()
-          return false
+          return CaptureResult(false, null)
         }
       }
 
       if (!tableExists(database, "transactions") || !tableExists(database, "categories")) {
-        return false
+        return CaptureResult(false, null)
       }
 
       val categoryId = findOrCreateCategory(database)
@@ -128,11 +137,60 @@ class NubankNotificationListenerService : NotificationListenerService() {
         "INSERT INTO imported_bank_notifications (notification_id, transaction_id) VALUES (?, ?)",
         arrayOf(notificationId, transactionId)
       )
+      val budgetMessage = buildBudgetMessage(database, date)
       database.setTransactionSuccessful()
-      return true
+      return CaptureResult(true, budgetMessage)
     } finally {
       database.endTransaction()
       database.close()
+    }
+  }
+
+  /**
+   * Calcula, a partir do banco local, quanto ainda resta do orçamento mensal após a
+   * compra capturada, no mesmo critério usado pelo BudgetAlertService do app:
+   * despesas do mês + gastos fixos ativos, comparados ao salário configurado.
+   */
+  private fun buildBudgetMessage(database: SQLiteDatabase, date: String): String? {
+    val salary = queryDouble(
+      database,
+      "SELECT monthly_salary FROM settings WHERE id = 1",
+      null
+    )
+    if (salary <= 0.0) {
+      return null
+    }
+
+    val month = date.take(7)
+    val transactionExpense = queryDouble(
+      database,
+      "SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = 'expense' AND strftime('%Y-%m', date) = ?",
+      arrayOf(month)
+    )
+    val fixedExpenseTotal = queryDouble(
+      database,
+      "SELECT COALESCE(SUM(amount), 0) FROM fixed_expenses WHERE active = 1",
+      null
+    )
+
+    val totalExpense = transactionExpense + fixedExpenseTotal
+    val available = salary - totalExpense
+    if (available <= 0.0) {
+      return "Limite mensal excedido."
+    }
+
+    val availablePercent = (available / salary) * 100
+    return String.format(
+      Locale("pt", "BR"),
+      "Restam %.0f%% do orçamento (%s).",
+      availablePercent,
+      formatCurrency(available)
+    )
+  }
+
+  private fun queryDouble(database: SQLiteDatabase, sql: String, args: Array<String>?): Double {
+    database.rawQuery(sql, args).use { cursor ->
+      return if (cursor.moveToFirst()) cursor.getDouble(0) else 0.0
     }
   }
 
@@ -165,7 +223,12 @@ class NubankNotificationListenerService : NotificationListenerService() {
     return database.insertOrThrow("categories", null, values)
   }
 
-  private fun showNotification(notificationId: String, title: String, body: String) {
+  private fun showNotification(
+    notificationId: String,
+    title: String,
+    body: String,
+    route: String = ROUTE_TRANSACTIONS
+  ) {
     if (
       Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
       checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -200,8 +263,26 @@ class NubankNotificationListenerService : NotificationListenerService() {
       .setStyle(Notification.BigTextStyle().bigText(body))
       .setAutoCancel(true)
       .setVisibility(Notification.VISIBILITY_PRIVATE)
+      .setContentIntent(buildContentIntent(notificationId, route))
 
     notificationManager.notify(notificationId.hashCode(), builder.build())
+  }
+
+  /**
+   * Abre o app na aba correspondente ao tocar na notificação, usando o deep link
+   * `fincontrol://<route>` tratado pelo roteamento do app.
+   */
+  private fun buildContentIntent(notificationId: String, route: String): PendingIntent {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("fincontrol://$route")).apply {
+      setPackage(packageName)
+      addFlags(
+        Intent.FLAG_ACTIVITY_NEW_TASK or
+          Intent.FLAG_ACTIVITY_SINGLE_TOP or
+          Intent.FLAG_ACTIVITY_CLEAR_TOP
+      )
+    }
+    val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    return PendingIntent.getActivity(this, notificationId.hashCode(), intent, flags)
   }
 
   private fun formatCurrency(amount: Double): String =
@@ -241,6 +322,8 @@ class NubankNotificationListenerService : NotificationListenerService() {
   }
 
   private data class ParsedPurchase(val amount: Double, val merchant: String)
+
+  private data class CaptureResult(val inserted: Boolean, val budgetMessage: String?)
 
   companion object {
     private val APPROVED_REGEX = Regex("""aprovad[ao]""", RegexOption.IGNORE_CASE)

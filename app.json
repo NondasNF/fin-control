@@ -4,6 +4,7 @@
     "slug": "fin-control",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "fincontrol",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
